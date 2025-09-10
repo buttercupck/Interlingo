@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { getFilteredYPrioritizedInpterpreters } from '../services/interpreterService.jsx'
+import { getInterpreterById } from '../services/interpreterService.jsx'
 
 const getJobLocationDetails = (organization) => {
   if (!organization) return { city: null, state: null };
@@ -7,7 +7,7 @@ const getJobLocationDetails = (organization) => {
 };
 function RDV({ request, onBack }) {
   console.log("Request object in RDV:", request);
-  
+
   const firstClientRequest = request?.client_requests?.[0] ?? null;
   const jobOrganization = request?.locations?.organizations ?? null;
   const languageId = useMemo(() => (
@@ -17,37 +17,26 @@ function RDV({ request, onBack }) {
     ?? null
   ), [firstClientRequest]);
   
+  const [interpretersList, setInterpretersList] = useState([]);
   const [interpreterData, setInterpreterData] = useState({ available: [], unavailable: [] });
   const [loadingInterpreters, setLoadingInterpreters] = useState(true);
   const { city: jobCity, state: jobState } = getJobLocationDetails(jobOrganization);
-  
+
   useEffect(() => {
-    async function fetchInterpretersData(){
-      setLoadingInterpreters(true);
-       const { city: jobCity, state: jobState } = getJobLocationDetails(jobOrganization);
-      if (firstClientRequest?.language.id) {
-      const data = await getFilteredYPrioritizedInpterpreters(
-        firstClientRequest?.language_id,
-        request.modality,
-        request.start_time,
-        request.end_time,
-        jobCity,
-        jobState
-      );
-      console.log("Fetched Interpreter Data:", data);
-        if (data) {
-          setInterpreterData(data);
-        } else {
-          setInterpreterData({ available: [], unavailable: [] });
-        }
+    async function fetchInterpreters() {
+      // Make sure firstClientRequest and its language property exist before fetching
+      if (firstClientRequest?.language?.id) {
+        const languageId = firstClientRequest.language.id;
+        const interpreters = await getInterpretersByLanguage(languageId);
+        setInterpretersList(interpreters);
       } else {
-        setInterpreterData({ available: [], unavailable: [] });
+        setInterpretersList([]); // Clear the list if no language is selected
       }
-      setLoadingInterpreters(false);
     }
-    fetchInterpretersData();
-  },[request, firstClientRequest, jobOrganization, jobCity, jobState]);
-  
+
+    fetchInterpreters();
+  }, [firstClientRequest]); // The dependency array ensures this runs whenever the client request changes
+
   return (
     <div>
       <div style={{ padding: '1rem', borderBottom: '1px solid #ccc'}}>
@@ -71,7 +60,7 @@ function RDV({ request, onBack }) {
     <p><strong>Date & Time:</strong> {new Date(request.start_time).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}</p>
     <p><strong>Modality:</strong> {request.modality}</p>
     <p><strong>Status:</strong> {request.status}</p>
-          
+
     <hr style={{ margin: '1rem 0'}} />
 
           {firstClientRequest && (
@@ -87,38 +76,20 @@ function RDV({ request, onBack }) {
           )}
         </div>
         {/* Right Panel: Interpreter List & Action Bar */}
-        <div style={{ width: '45%', padding: '1rem' }}>
-          <h2>Interpreter Assignment</h2>
-          {loadingInterpreters ?(
-            <div>Loading interpreters...</div>
+        <div>
+          <h2>Interpreters</h2>
+          {interpretersList.length > 0 ? (
+            <ul>
+              {interpretersList.map(interpreter => (
+                <li key={interpreter.id}>
+                  {interpreter.first_name} {interpreter.last_name}
+                </li>
+              ))}
+            </ul>
           ) : (
-      <>
-        <h3> Available Interpreters ({ interpreterData.available.length})</h3>
-        {interpreterData.available.length > 0 ? (
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
-          {interpreterData.available.map(interpreter => (
-            <li key={interpreter.id} style={{ 
-                padding: '8px', 
-                margin: '4px 0', 
-                border: '1px solid #28a745', 
-                borderRadius: '4px', 
-                backgroundColor: '#e6ffe6' 
-            }}>
-              <strong>{interpreter.first_name} {interpreter.last_name}</strong>
-              {interpreter.interpreter_languages?.[0]?.certification && 
-               ` (${interpreter.interpreter_languages[0].certification})`}
-              {/* Add a reason for unavailability */}
-              {modality === 'In-Person' && (interpreter.city !== city || interpreter.state !== state) && ` (Not local)`}
-              {modality !== 'In-Person' && !interpreter.modality_preferences.includes(modality) && ` (Modality mismatch)`}
-              {busyInterpreterIds.includes(interpreter.id) && ` (Booked)`} {/* Added booked reason */}
-            </li>
-          ))}
-        </ul>
-        ) : (
-        <p>No available interpreters found.</p>
-        )}
-      </>
-      )}
+            <p>No interpreters found for this language.</p>
+          )}
+        </div>
           {/* Action Bar */}
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button>Confirm & Assign</button>
@@ -127,7 +98,6 @@ function RDV({ request, onBack }) {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 export default RDV;
