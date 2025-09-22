@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
-// Email Draft Interface Component
+// Email Draft Interface Component with Interlingo Design System
 const EmailDraftInterface = ({ selectedJob, onClose }) => {
   const [emailType, setEmailType] = useState('REM');
   const [jobData, setJobData] = useState(null);
@@ -240,11 +240,11 @@ const EmailDraftInterface = ({ selectedJob, onClose }) => {
 
   if (!selectedJob) {
     return (
-      <div className="email-draft-panel">
-        <div className="email-draft-empty">
-          <div className="empty-state">
-            <h3>No Job Selected</h3>
-            <p>Select a job from the list to generate email drafts</p>
+      <div className="w-96 h-screen bg-white border-l border-gray-200 flex flex-col font-primary">
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center text-gray-500">
+            <h3 className="heading-4 text-gray-700 mb-2">No Job Selected</h3>
+            <p className="body-base">Select a job from the list to generate email drafts</p>
           </div>
         </div>
       </div>
@@ -252,25 +252,35 @@ const EmailDraftInterface = ({ selectedJob, onClose }) => {
   }
 
   return (
-    <div className="email-draft-panel">
-      <div className="email-draft-header">
-        <h2>Email Draft</h2>
-        <button className="close-button" onClick={onClose}>✕</button>
+    <div className="w-96 h-screen bg-white border-l border-gray-200 flex flex-col font-primary">
+      {/* Header */}
+      <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-gray-50">
+        <h2 className="heading-4 text-gray-700 mb-0">Email Draft</h2>
+        <button 
+          className="bg-transparent border-0 text-xl text-gray-500 cursor-pointer p-1 rounded transition-all duration-200 hover:bg-gray-200 hover:text-gray-700"
+          onClick={onClose}
+        >
+          ✕
+        </button>
       </div>
 
       {isLoading ? (
-        <div className="loading-state">
-          <p>Loading job details...</p>
+        <div className="flex-1 flex items-center justify-center p-8 text-gray-500">
+          <p className="body-base">Loading job details...</p>
         </div>
       ) : (
         <>
           {/* Email Type Selector */}
-          <div className="email-type-selector">
-            <div className="tab-group">
+          <div className="p-4 px-6 border-b border-gray-200">
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
               {['REM', 'REQ', 'CONF'].map((type) => (
                 <button
                   key={type}
-                  className={`tab ${emailType === type ? 'active' : ''}`}
+                  className={`flex-1 px-4 py-2 bg-transparent border-0 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 ${
+                    emailType === type 
+                      ? 'bg-primary-blue text-white' 
+                      : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                  }`}
                   onClick={() => setEmailType(type)}
                 >
                   {type}
@@ -280,29 +290,33 @@ const EmailDraftInterface = ({ selectedJob, onClose }) => {
           </div>
 
           {/* Email Preview */}
-          <div className="email-preview">
-            <div className="email-preview-header">
-              <div className="email-field">
-                <strong>To:</strong> 
+          <div className="flex-1 overflow-y-auto bg-white">
+            {/* Email Header */}
+            <div className="bg-gray-50 p-4 px-6 border-b border-gray-200">
+              <div className="mb-2 text-sm leading-normal">
+                <span className="text-gray-700 inline-block w-16 font-medium">To:</span>
                 {jobData?.interpreters?.email ? (
-                  <span className="email-valid"> {jobData.interpreters.email}</span>
+                  <span className="text-green-600"> {jobData.interpreters.email}</span>
                 ) : (
-                  <span className="email-missing"> ⚠️ MISSING: Interpreter Email</span>
+                  <span className="text-red-600"> ⚠️ MISSING: Interpreter Email</span>
                 )}
               </div>
-              <div className="email-field">
-                <strong>Subject:</strong> {emailContent?.subject || ''}
+              <div className="mb-2 text-sm leading-normal">
+                <span className="text-gray-700 inline-block w-16 font-medium">Subject:</span>
+                <span className="text-gray-700"> {emailContent?.subject || ''}</span>
               </div>
             </div>
             
-            <div className="email-body">
+            {/* Email Body */}
+            <div className="p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap text-gray-700 bg-white">
               {emailContent?.body || ''}
             </div>
             
+            {/* Missing Data Warning */}
             {missingData.length > 0 && (
-              <div className="missing-data-warning">
-                <h4>⚠️ Missing Information:</h4>
-                <ul>
+              <div className="m-4 mx-6 p-4 bg-yellow-100 border border-warning rounded-lg">
+                <h4 className="heading-4 text-yellow-800 mb-2">⚠️ Missing Information:</h4>
+                <ul className="m-0 pl-4 text-sm text-yellow-800">
                   {missingData.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
@@ -312,9 +326,9 @@ const EmailDraftInterface = ({ selectedJob, onClose }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="email-actions">
+          <div className="p-6 border-t border-gray-200 bg-gray-50 flex flex-col gap-3">
             <button 
-              className="button button-primary"
+              className={`button button-primary ${!emailContent ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={handleCopyEmail}
               disabled={!emailContent}
             >
@@ -329,239 +343,6 @@ const EmailDraftInterface = ({ selectedJob, onClose }) => {
           </div>
         </>
       )}
-
-      <style jsx>{`
-        .email-draft-panel {
-          width: 400px;
-          height: 100vh;
-          background: white;
-          border-left: 1px solid #e5e7eb;
-          display: flex;
-          flex-direction: column;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .email-draft-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
-          background: #f9fafb;
-        }
-
-        .email-draft-header h2 {
-          margin: 0;
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #374151;
-        }
-
-        .close-button {
-          background: none;
-          border: none;
-          font-size: 1.25rem;
-          color: #6b7280;
-          cursor: pointer;
-          padding: 0.25rem;
-          border-radius: 0.25rem;
-          transition: all 0.2s ease;
-        }
-
-        .close-button:hover {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .email-draft-empty {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem;
-        }
-
-        .empty-state {
-          text-align: center;
-          color: #6b7280;
-        }
-
-        .empty-state h3 {
-          margin: 0 0 0.5rem 0;
-          color: #374151;
-        }
-
-        .loading-state {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem;
-          color: #6b7280;
-        }
-
-        .email-type-selector {
-          padding: 1rem 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .tab-group {
-          display: flex;
-          gap: 0.25rem;
-          background: #f3f4f6;
-          padding: 0.25rem;
-          border-radius: 0.5rem;
-        }
-
-        .tab {
-          flex: 1;
-          padding: 0.5rem 1rem;
-          background: transparent;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #6b7280;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .tab.active {
-          background: #1b365c;
-          color: white;
-        }
-
-        .tab:hover:not(.active) {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .email-preview {
-          flex: 1;
-          overflow-y: auto;
-          background: white;
-        }
-
-        .email-preview-header {
-          background: #f9fafb;
-          padding: 1rem 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .email-field {
-          margin-bottom: 0.5rem;
-          font-size: 0.875rem;
-          line-height: 1.5;
-        }
-
-        .email-field strong {
-          color: #374151;
-          display: inline-block;
-          width: 60px;
-        }
-
-        .email-valid {
-          color: #059669;
-        }
-
-        .email-missing {
-          color: #dc2626;
-        }
-
-        .email-body {
-          padding: 1.5rem;
-          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-          font-size: 0.875rem;
-          line-height: 1.6;
-          white-space: pre-wrap;
-          color: #374151;
-          background: white;
-        }
-
-        .missing-data-warning {
-          margin: 1rem 1.5rem;
-          padding: 1rem;
-          background: #fef3c7;
-          border: 1px solid #f59e0b;
-          border-radius: 0.5rem;
-        }
-
-        .missing-data-warning h4 {
-          margin: 0 0 0.5rem 0;
-          font-size: 0.875rem;
-          color: #92400e;
-        }
-
-        .missing-data-warning ul {
-          margin: 0;
-          padding-left: 1rem;
-          font-size: 0.875rem;
-          color: #92400e;
-        }
-
-        .email-actions {
-          padding: 1.5rem;
-          border-top: 1px solid #e5e7eb;
-          background: #f9fafb;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          border-radius: 0.375rem;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-decoration: none;
-          font-family: inherit;
-        }
-
-        .button-primary {
-          background-color: #1b365c;
-          color: white;
-        }
-
-        .button-primary:hover:not(:disabled) {
-          background-color: #2d4a6b;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .button-primary:disabled {
-          background-color: #9ca3af;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .button-secondary {
-          background-color: #0d7377;
-          color: white;
-        }
-
-        .button-secondary:hover {
-          background-color: #0a5d61;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .button-outline {
-          background-color: transparent;
-          color: #1b365c;
-          border: 1px solid #1b365c;
-        }
-
-        .button-outline:hover {
-          background-color: #ebf1f7;
-        }
-      `}</style>
     </div>
   );
 };
