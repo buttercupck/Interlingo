@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllInterpreters } from '../services/interpreterService.js';
+import { getAllInterpreters } from '../../services/interpreterService.jsx';
 
 function InterpretersList() {
   const [interpreters, setInterpreters] = useState([]);

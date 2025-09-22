@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from 'src/lib/supabase.js';
+
 
 // Email Draft Interface Component with Interlingo Design System
 const EmailDraftInterface = ({ selectedJob, onClose }) => {
