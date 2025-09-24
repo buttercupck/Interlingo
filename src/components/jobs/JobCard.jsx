@@ -1,115 +1,112 @@
 import React from 'react';
-import { Calendar, Clock, MapPin, User } from 'lucide-react';
 
 export default function JobCard({ job, onClick }) {
-  const commitmentBlock = job.commitment_blocks?.[0];
+  // Add debugging to see what data we're receiving
+  console.log('JobCard received job data:', job);
+
+  const commitmentBlock = job.commitment_blocks; // Now it's a single object, not an array
   const interpreter = commitmentBlock?.interpreters;
-  const location = commitmentBlock?.locations;
   const status = commitmentBlock?.status || 'pending';
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'assigned': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  // Debug the data structure
+  console.log('Commitment block:', commitmentBlock);
+  console.log('Interpreter:', interpreter);
+  console.log('Language:', job.languages);
+
+  // Get interpreter first name or "?" if not available
+  const interpreterName = interpreter?.first_name || '?';
+
+  // Get language name
+  const language = job.languages?.name || 'Unknown Language';
+
+  // Get modality - convert "ZOOM" to "ZOOM", handle the modality properly
+  const modality = commitmentBlock?.modality?.toUpperCase() || 'TBD';
+
+  // Format date and time with better error handling
+  const formatDateTime = () => {
+    if (!commitmentBlock?.start_time) {
+      console.log('No start_time found in commitment block');
+      return 'Date TBD';
+    }
+
+    try {
+      const startDate = new Date(commitmentBlock.start_time);
+      const endDate = commitmentBlock.end_time ? new Date(commitmentBlock.end_time) : null;
+
+      if (isNaN(startDate.getTime())) {
+        console.log('Invalid start date:', commitmentBlock.start_time);
+        return 'Invalid Date';
+      }
+
+      const month = startDate.toLocaleDateString('en-US', { month: 'short' });
+      const date = startDate.getDate();
+      const startTime = startDate.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+
+      if (endDate && !isNaN(endDate.getTime())) {
+        const endTime = endDate.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+        return `${month} ${date}, ${startTime} - ${endTime}`;
+      } else {
+        return `${month} ${date}, ${startTime}`;
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date Error';
     }
   };
 
-  const formatDateTime = (dateTime) => {
-    if (!dateTime) return 'TBD';
-    const date = new Date(dateTime);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Get status badge class based on design system
+  const getStatusBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'confirmed': return 'badge badge-success';
+      case 'pending': return 'badge badge-warning';
+      case 'cancelled': return 'badge badge-danger';
+      case 'assigned': return 'badge badge-info';
+      default: return 'badge badge-info';
+    }
   };
 
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer min-h-[120px] flex flex-col justify-between"
     >
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {job.client_name}
-          </h3>
-          <p className="text-sm text-gray-600">
-            Case: {job.case_number || 'No case number'}
-          </p>
+      {/* Debug info - remove this in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-red-500 mb-2 p-1 bg-red-50 rounded">
+          DEBUG: ID={job.id}, Lang={job.languages?.name}, Interp={interpreter?.first_name}
         </div>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+      )}
+
+      {/* Title: [Language] - [Interpreter First Name | "?"] [Modality] */}
+      <div className="flex-1">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 leading-tight">
+          {language} - {interpreterName} {modality}
+        </h3>
+
+        {/* [Month, Date, and Start, End times] */}
+        <p className="text-sm text-gray-600 mb-3">
+          {formatDateTime()}
+        </p>
+      </div>
+
+      {/* [Job Status] */}
+      <div className="flex justify-start mt-auto">
+        <span className={`px-2 py-1 rounded text-xs font-medium uppercase tracking-wide ${
+          status === 'confirmed' ? 'bg-green-100 text-green-800' :
+          status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+          status === 'cancelled' ? 'bg-red-100 text-red-800' :
+          'bg-blue-100 text-blue-800'
+        }`}>
           {status}
         </span>
-      </div>
-
-      {/* Job Details */}
-      <div className="space-y-3">
-        {/* Date/Time */}
-        {commitmentBlock?.start_time && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-            {formatDateTime(commitmentBlock.start_time)}
-          </div>
-        )}
-
-        {/* Duration */}
-        {commitmentBlock?.duration && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="h-4 w-4 mr-2 text-gray-400" />
-            {commitmentBlock.duration} minutes
-          </div>
-        )}
-
-        {/* Language */}
-        {job.languages && (
-          <div className="flex items-center text-sm text-gray-600">
-            <span className="w-4 h-4 mr-2 text-gray-400">🗣️</span>
-            {job.languages.name}
-          </div>
-        )}
-
-        {/* Location */}
-        {location && (
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-            {location.organizations?.name || location.name}
-          </div>
-        )}
-
-        {/* Interpreter */}
-        {interpreter && (
-          <div className="flex items-center text-sm text-gray-600">
-            <User className="h-4 w-4 mr-2 text-gray-400" />
-            {interpreter.first_name} {interpreter.last_name}
-          </div>
-        )}
-
-        {/* Meeting Type */}
-        <div className="flex items-center text-sm text-gray-600">
-          <span className="w-4 h-4 mr-2 text-gray-400">⚖️</span>
-          {job.meeting_type}
-        </div>
-
-        {/* Modality */}
-        {commitmentBlock?.modality && (
-          <div className="flex items-center text-sm text-gray-600">
-            <span className="w-4 h-4 mr-2 text-gray-400">
-              {commitmentBlock.modality === 'remote' ? '💻' : '👥'}
-            </span>
-            {commitmentBlock.modality}
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="flex justify-between items-center text-xs text-gray-500">
-          <span>Created: {new Date(job.created_at).toLocaleDateString()}</span>
-          {job.requestor_email && (
-            <span className="truncate ml-2">{job.requestor_email}</span>
-          )}
-        </div>
       </div>
     </div>
   );
