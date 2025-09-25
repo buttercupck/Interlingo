@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { Filter } from 'lucide-react';
 import JobCard from '../components/jobs/JobCard';
+import jobService from '../services/jobService';
 
 export default function Dashboard() {
   const [jobs, setJobs] = useState([]);
@@ -17,69 +17,16 @@ export default function Dashboard() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      // Add debugging to see what we get back
-      console.log('Fetching jobs from Supabase...');
+      console.log('Fetching jobs using jobService...');
 
-      const { data, error } = await supabase
-        .from('client_requests')
-        .select(`
-          id,
-          client_name,
-          case_number,
-          meeting_type,
-          requestor_email,
-          specific_location_details,
-          key_contact_name,
-          charges,
-          created_at,
-          updated_at,
-          commitment_block_id,
-          commitment_blocks:commitment_block_id (
-            id,
-            start_time,
-            end_time,
-            duration,
-            status,
-            modality,
-            interpreter_id,
-            location_id,
-            interpreters (
-              id,
-              first_name,
-              last_name,
-              email,
-              phone
-            ),
-            locations (
-              id,
-              name,
-              address,
-              zoom_link,
-              organizations (
-                id,
-                name,
-                abbreviation
-              )
-            )
-          ),
-          languages (
-            id,
-            name
-          ),
-          court_programs (
-            id,
-            name,
-            description
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const { data, error } = await jobService.getAllJobs();
 
       if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+        console.error('Service error:', error);
+        throw new Error(error);
       }
 
-      console.log('Raw data from Supabase:', data);
+      console.log('Data from jobService:', data);
 
       // Log each job to see the structure
       data?.forEach((job, index) => {
@@ -87,8 +34,10 @@ export default function Dashboard() {
           id: job.id,
           client_name: job.client_name,
           language: job.languages?.name,
-          commitment_blocks_count: job.commitment_blocks?.length || 0,
-          first_commitment_block: job.commitment_blocks?.[0]
+          commitment_block: job.commitment_blocks ? 'Present' : 'Missing',
+          interpreter: job.commitment_blocks?.interpreters ? `${job.commitment_blocks.interpreters.first_name}` : 'No interpreter',
+          start_time: job.commitment_blocks?.start_time,
+          status: job.commitment_blocks?.status
         });
       });
 
@@ -102,14 +51,14 @@ export default function Dashboard() {
 
   const filteredJobs = jobs.filter(job => {
     if (filter === 'all') return true;
-    const status = job.commitment_blocks?.[0]?.status || 'pending';
+    const status = job.commitment_blocks?.status || 'pending';
     return status.toLowerCase() === filter;
   });
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg text-gray-600">Loading jobs...</div>
+        <div className="body-large text-gray-600">Loading jobs...</div>
       </div>
     );
   }
@@ -121,8 +70,8 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Interlingo Dashboard</h1>
-              <p className="text-base text-gray-600">Manage interpretation jobs and assignments</p>
+              <h1 className="heading-1">Interlingo Dashboard</h1>
+              <p className="body-base text-gray-600">Manage interpretation jobs and assignments</p>
             </div>
 
             {/* Filter Controls */}
@@ -132,9 +81,10 @@ export default function Dashboard() {
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input select"
                 >
                   <option value="all">All Jobs</option>
+                  <option value="initial">Initial</option>
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="cancelled">Cancelled</option>
@@ -145,12 +95,29 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 p-4">
+          <p className="body-small text-yellow-800">
+            DEBUG: Found {jobs.length} jobs. Check console for detailed data structure.
+          </p>
+        </div>
+      )}
+
       {/* Jobs Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {filteredJobs.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-2xl font-semibold text-gray-500">No jobs found</div>
-            <p className="text-base text-gray-400 mt-2">Jobs will appear here when created</p>
+            <div className="heading-3 text-gray-500">No jobs found</div>
+            <p className="body-base text-gray-400 mt-2">
+              {filter === 'all' ? 'No jobs created yet' : `No ${filter} jobs found`}
+            </p>
+            <button 
+              onClick={fetchJobs}
+              className="button button-primary mt-4"
+            >
+              Refresh Jobs
+            </button>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
