@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interlingo Design System</title>
+    <style>
+        /* Typography - Inspired by modern B2B scheduling tools */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Primary Color Palette - Professional Communication Focus */
+            --primary-blue: #1B365C;      /* Deep professional blue - trust & reliability */
+            --primary-light: #2D4A6B;     /* Lighter variant for hover states */
+            --primary-lighter: #EBF1F7;   /* Very light blue for backgrounds */
+            
+            /* Secondary Colors - Language & Communication Theme */
+            --secondary-teal: #0D7377;    /* Teal for accents - communication/translation */
+            --secondary-green: #14A085;   /* Success green - confirmed appointments */
+            --secondary-purple: #6366F1;  /* Modern purple for highlights */
+            
+            /* System Colors */
+            --success: #10B981;     /* Success actions - booking confirmed */
+            --warning: #F59E0B;     /* Warning states - pending review */
+            --danger: #EF4444;      /* Error states - failed/cancelled */
+            --info: #3B82F6;        /* Information - general alerts */
+            
+            /* Neutral Scale - Calendly Inspired */
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            
+            /* Typography Scales */
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-secondary: 'Poppins', sans-serif;
+            
+            /* Font Sizes - Modular Scale 1.25x */
+            --text-xs: 0.75rem;      /* 12px */
+            --text-sm: 0.875rem;     /* 14px */
+            --text-base: 1rem;       /* 16px */
+            --text-lg: 1.125rem;     /* 18px */
+            --text-xl: 1.25rem;      /* 20px */
+            --text-2xl: 1.5rem;      /* 24px */
+            --text-3xl: 1.875rem;    /* 30px */
+            --text-4xl: 2.25rem;     /* 36px */
+            
+            /* Spacing System - 8px grid */
+            --space-1: 0.25rem;   /* 4px */
+            --space-2: 0.5rem;    /* 8px */
+            --space-3: 0.75rem;   /* 12px */
+            --space-4: 1rem;      /* 16px */
+            --space-5: 1.25rem;   /* 20px */
+            --space-6: 1.5rem;    /* 24px */
+            --space-8: 2rem;      /* 32px */
+            --space-10: 2.5rem;   /* 40px */
+            --space-12: 3rem;     /* 48px */
+            --space-16: 4rem;     /* 64px */
+            
+            /* Border Radius */
+            --radius-sm: 0.25rem;   /* 4px */
+            --radius-md: 0.375rem;  /* 6px */
+            --radius-lg: 0.5rem;    /* 8px */
+            --radius-xl: 0.75rem;   /* 12px */
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-primary);
+            font-size: var(--text-base);
+            line-height: 1.6;
+            color: var(--gray-700);
+            background-color: var(--gray-50);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-6);
+        }
+        
+        /* Typography Components */
+        .heading-1 {
+            font-family: var(--font-secondary);
+            font-size: var(--text-4xl);
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-6);
+        }
+        
+        .heading-2 {
+            font-family: var(--font-secondary);
+            font-size: var(--text-3xl);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--space-4);
+        }
+        
+        .heading-3 {
+            font-family: var(--font-primary);
+            font-size: var(--text-2xl);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--space-3);
+        }
+        
+        .heading-4 {
+            font-size: var(--text-xl);
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--space-2);
+        }
+        
+        .body-large {
+            font-size: var(--text-lg);
+            line-height: 1.7;
+            color: var(--gray-600);
+        }
+        
+        .body-base {
+            font-size: var(--text-base);
+            line-height: 1.6;
+            color: var(--gray-600);
+        }
+        
+        .body-small {
+            font-size: var(--text-sm);
+            line-height: 1.5;
+            color: var(--gray-500);
+        }
+        
+        .caption {
+            font-size: var(--text-xs);
+            font-weight: 500;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Color Palette Display */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin: var(--space-6) 0;
+        }
+        
+        .color-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .color-swatch {
+            width: 100%;
+            height: 80px;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-3);
+        }
+        
+        .color-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: var(--text-sm);
+        }
+        
+        .color-value {
+            font-family: 'Monaco', monospace;
+            font-size: var(--text-xs);
+            color: var(--gray-500);
+            margin-top: var(--space-1);
+        }
+        
+        /* Button Components */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: var(--font-primary);
+        }
+        
+        .button-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        
+        .button-primary:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .button-secondary {
+            background-color: var(--secondary-teal);
+            color: white;
+        }
+        
+        .button-secondary:hover {
+            background-color: #0A5D61;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .button-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .button-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .button-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .button-outline {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+        }
+        
+        .button-outline:hover {
+            background-color: var(--primary-lighter);
+        }
+        
+        .button-ghost {
+            background-color: transparent;
+            color: var(--gray-600);
+        }
+        
+        .button-ghost:hover {
+            background-color: var(--gray-100);
+        }
+        
+        /* Input Components */
+        .input-group {
+            margin-bottom: var(--space-4);
+        }
+        
+        .input-label {
+            display: block;
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: var(--space-2);
+        }
+        
+        .input {
+            width: 100%;
+            padding: var(--space-3);
+            font-size: var(--text-base);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            background-color: white;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(27, 54, 92, 0.1);
+        }
+        
+        .select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        /* Card Components */
+        .card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-4);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid var(--gray-200);
+            padding-bottom: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        
+        .card-title {
+            font-size: var(--text-xl);
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+        
+        /* Status Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-1) var(--space-3);
+            font-size: var(--text-xs);
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-success {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .badge-warning {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .badge-danger {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .badge-info {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+        
+        /* Layout Grid */
+        .grid {
+            display: grid;
+            gap: var(--space-6);
+        }
+        
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Component Examples Section */
+        .examples-section {
+            margin: var(--space-8) 0;
+        }
+        
+        .component-showcase {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin: var(--space-4) 0;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .showcase-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+            margin: var(--space-4) 0;
+        }
+        
+        /* Email Draft Preview */
+        .email-preview {
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: white;
+        }
+        
+        .email-header {
+            background: var(--gray-100);
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--gray-300);
+        }
+        
+        .email-field {
+            margin-bottom: var(--space-2);
+            font-size: var(--text-sm);
+        }
+        
+        .email-field strong {
+            color: var(--gray-700);
+            display: inline-block;
+            width: 80px;
+        }
+        
+        .email-body {
+            padding: var(--space-4);
+            font-family: 'Monaco', monospace;
+            font-size: var(--text-sm);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="heading-1">Interlingo Design System</h1>
+            <p class="body-large">A comprehensive design system for B2B interpretation scheduling, inspired by leading tools like Calendly and Acuity Scheduling.</p>
+        </header>
+
+        <section>
+            <h2 class="heading-2">Color Palette</h2>
+            <p class="body-base">Professional communication-focused colors that convey trust, reliability, and clarity.</p>
+            
+            <h3 class="heading-3">Primary Colors</h3>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #1B365C;"></div>
+                    <div class="color-name">Primary Blue</div>
+                    <div class="color-value">#1B365C</div>
+                    <div class="body-small">Main brand color - trust & professionalism</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #2D4A6B;"></div>
+                    <div class="color-name">Primary Light</div>
+                    <div class="color-value">#2D4A6B</div>
+                    <div class="body-small">Hover states and variations</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #EBF1F7;"></div>
+                    <div class="color-name">Primary Lighter</div>
+                    <div class="color-value">#EBF1F7</div>
+                    <div class="body-small">Background tints</div>
+                </div>
+            </div>
+
+            <h3 class="heading-3">Secondary Colors</h3>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #0D7377;"></div>
+                    <div class="color-name">Communication Teal</div>
+                    <div class="color-value">#0D7377</div>
+                    <div class="body-small">Language & communication theme</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #14A085;"></div>
+                    <div class="color-name">Success Green</div>
+                    <div class="color-value">#14A085</div>
+                    <div class="body-small">Confirmed appointments</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #6366F1;"></div>
+                    <div class="color-name">Modern Purple</div>
+                    <div class="color-value">#6366F1</div>
+                    <div class="body-small">Highlights and accents</div>
+                </div>
+            </div>
+
+            <h3 class="heading-3">System Colors</h3>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #10B981;"></div>
+                    <div class="color-name">Success</div>
+                    <div class="color-value">#10B981</div>
+                    <div class="body-small">Booking confirmed</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #F59E0B;"></div>
+                    <div class="color-name">Warning</div>
+                    <div class="color-value">#F59E0B</div>
+                    <div class="body-small">Pending review</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #EF4444;"></div>
+                    <div class="color-name">Danger</div>
+                    <div class="color-value">#EF4444</div>
+                    <div class="body-small">Failed/cancelled</div>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background-color: #3B82F6;"></div>
+                    <div class="color-name">Info</div>
+                    <div class="color-value">#3B82F6</div>
+                    <div class="body-small">General alerts</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="examples-section">
+            <h2 class="heading-2">Typography Scale</h2>
+            <p class="body-base">Clean, readable typography inspired by modern scheduling applications. Primary font: Inter, Secondary: Poppins.</p>
+            
+            <div class="component-showcase">
+                <h1 class="heading-1">Heading 1 - Main Titles</h1>
+                <h2 class="heading-2">Heading 2 - Section Headers</h2>
+                <h3 class="heading-3">Heading 3 - Subsections</h3>
+                <h4 class="heading-4">Heading 4 - Component Titles</h4>
+                <p class="body-large">Body Large - Important descriptions and introductions</p>
+                <p class="body-base">Body Base - Standard paragraph text for general content</p>
+                <p class="body-small">Body Small - Supporting text and less important information</p>
+                <p class="caption">Caption - Labels and metadata</p>
+            </div>
+        </section>
+
+        <section class="examples-section">
+            <h2 class="heading-2">Component Patterns</h2>
+            
+            <div class="component-showcase">
+                <div class="showcase-title">Buttons</div>
+                <div class="button-group">
+                    <button class="button button-primary">Generate REM Email</button>
+                    <button class="button button-secondary">Send for Review</button>
+                    <button class="button button-success">Confirm Booking</button>
+                    <button class="button button-warning">Needs Attention</button>
+                    <button class="button button-danger">Cancel Request</button>
+                    <button class="button button-outline">Copy Email</button>
+                    <button class="button button-ghost">Preview</button>
+                </div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="showcase-title">Status Badges</div>
+                <div class="button-group">
+                    <span class="badge badge-success">Confirmed</span>
+                    <span class="badge badge-warning">Pending Review</span>
+                    <span class="badge badge-danger">Cancelled</span>
+                    <span class="badge badge-info">Draft Ready</span>
+                </div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="showcase-title">Form Components</div>
+                <div class="grid grid-2">
+                    <div class="input-group">
+                        <label class="input-label">Interpreter Name</label>
+                        <input type="text" class="input" placeholder="Elena McGivern" value="Vannara Lim">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Language</label>
+                        <select class="input select">
+                            <option>Cambodian</option>
+                            <option>Spanish</option>
+                            <option>Ukrainian</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Organization</label>
+                        <select class="input select">
+                            <option>FIFE</option>
+                            <option>Kent Municipal Court</option>
+                            <option>Puyallup Municipal Court</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Modality</label>
+                        <select class="input select">
+                            <option>IN PERSON</option>
+                            <option>Zoom</option>
+                            <option>PHONE</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="examples-section">
+            <h2 class="heading-2">Application Layout Example</h2>
+            
+            <div class="component-showcase">
+                <div class="showcase-title">Email Draft Interface</div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">REM Email Draft - FIFE Assignment</div>
+                        <div class="button-group">
+                            <span class="badge badge-warning">Pending Review</span>
+                            <button class="button button-secondary">Send for Review</button>
+                            <button class="button button-primary">Copy Email</button>
+                        </div>
+                    </div>
+                    
+                    <div class="email-preview">
+                        <div class="email-header">
+                            <div class="email-field"><strong>To:</strong> ⚠️ MISSING: Vannara Lim's Email Address</div>
+                            <div class="email-field"><strong>Subject:</strong> Reminder: 8:30 AM IN PERSON Assignment Tomorrow (3 hours)</div>
+                        </div>
+                        <div class="email-body">You are scheduled for FIFE tomorrow, October 2nd at 8:30 AM.
+
+Please submit your round trip mileage via email by 5 PM today.
+
+⚠️ **Extended Assignment:** This is a 3-hour assignment ending at 11:30 AM. Please plan accordingly.
+
+PET, SAO
+5A0741556 - [⚠️ MISSING: Hearing Type]
+[⚠️ MISSING: Charges]</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="examples-section">
+            <h2 class="heading-2">Spacing & Layout Principles</h2>
+            <div class="component-showcase">
+                <div class="showcase-title">8px Grid System</div>
+                <p class="body-base">All spacing follows an 8px grid for consistency and visual rhythm:</p>
+                <ul class="body-base" style="margin-left: var(--space-6); margin-top: var(--space-3);">
+                    <li><strong>4px (space-1):</strong> Tight spacing between related elements</li>
+                    <li><strong>8px (space-2):</strong> Small gaps, icon spacing</li>
+                    <li><strong>16px (space-4):</strong> Standard component padding</li>
+                    <li><strong>24px (space-6):</strong> Section spacing</li>
+                    <li><strong>32px (space-8):</strong> Large section breaks</li>
+                    <li><strong>48px (space-12):</strong> Major page sections</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer style="margin-top: var(--space-16); padding: var(--space-8) 0; border-top: 1px solid var(--gray-200);">
+            <p class="body-small" style="text-align: center; color: var(--gray-500);">
+                Design system inspired by Calendly, Acuity Scheduling, and modern B2B communication tools.<br>
+                Built for professional interpretation scheduling workflows.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

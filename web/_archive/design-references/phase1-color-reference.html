@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 1 CSS Consolidation - Complete Production Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            primary: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+            secondary: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            primary: '#1B365C',
+            secondary: '#0D7377',
+            gray: {
+              50: '#F9FAFB',
+              100: '#F3F4F6',
+              200: '#E5E7EB',
+              400: '#9CA3AF',
+              500: '#6B7280',
+              600: '#4B5563',
+              700: '#374151',
+              800: '#1F2937',
+              900: '#111827',
+            },
+            cert: {
+              bg: '#D1FAE5',
+              text: '#065F46',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #374151;
+      background: #F9FAFB;
+      padding: 2rem;
+    }
+
+    /* Typography - Design System Classes */
+    .heading-1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.25rem; /* 36px */
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1.5rem;
+    }
+    .heading-2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.875rem; /* 30px */
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 1rem;
+    }
+    .heading-3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.5rem; /* 24px */
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 0.75rem;
+    }
+    .heading-4 {
+      font-size: 1.25rem; /* 20px */
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+    .body-small {
+      font-size: 0.875rem; /* 14px */
+      line-height: 1.5;
+      color: #6B7280;
+    }
+    .caption {
+      font-size: 0.75rem; /* 12px */
+      font-weight: 500;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .info-field-value {
+      font-weight: 500;
+      color: #111827;
+    }
+
+    /* Card Component */
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      border: 1px solid #E5E7EB;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Annotation System - Hover Only */
+    .annotation {
+      position: relative;
+    }
+    .annotation::before {
+      content: attr(data-class);
+      position: absolute;
+      top: -2.5rem;
+      left: 0;
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-family: monospace;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1000;
+      border: 1px solid #F59E0B;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .annotation:hover::before {
+      opacity: 1;
+    }
+    .annotation:hover {
+      outline: 2px dashed rgba(217, 119, 6, 0.5);
+      outline-offset: 2px;
+    }
+
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 1rem;
+      margin-top: 2rem;
+      border-bottom: 2px solid #0D7377;
+      padding-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interlingo - Complete Production Styling Reference</h1>
+  <p style="color: #6B7280; margin-bottom: 0.5rem;">Fonts: Inter (primary), Poppins (headings)</p>
+  <p style="color: #6B7280; margin-bottom: 2rem;">This mockup shows the complete production styling including fonts, spacing, layout, and all color classes with annotations.</p>
+
+  <!-- Typography Specimens -->
+  <div class="card">
+    <h2>Typography System</h2>
+
+    <div style="margin-bottom: 2rem;">
+      <p class="annotation heading-1" data-class=".heading-1 (Poppins, 36px, 700)">Heading 1 - Poppins Bold 36px</p>
+      <p class="annotation heading-2" data-class=".heading-2 (Poppins, 30px, 600)">Heading 2 - Poppins Semibold 30px</p>
+      <p class="annotation heading-3" data-class=".heading-3 (Inter, 24px, 600)">Heading 3 - Inter Semibold 24px</p>
+      <p class="annotation heading-4" data-class=".heading-4 (Inter, 20px, 600)">Heading 4 - Inter Semibold 20px</p>
+      <p class="annotation body-small" data-class=".body-small (Inter, 14px)" style="margin-top: 1rem;">Body Small - Inter Regular 14px (#6B7280 = gray-500)</p>
+      <p class="annotation caption" data-class=".caption (Inter, 12px, 500, uppercase)" style="margin-top: 1rem;">Caption - Inter Medium 12px Uppercase (#9CA3AF = gray-400)</p>
+    </div>
+  </div>
+
+  <!-- Header (Current Day Display) -->
+  <div class="card">
+    <h2>Header.tsx</h2>
+
+    <header class="annotation" data-class="border-gray-200 px-8 py-3" style="background: white; border-bottom: 1px solid #E5E7EB; padding: 0.75rem 2rem;">
+      <p class="annotation body-small" data-class=".body-small text-gray-600" style="color: #4B5563;">
+        Wednesday, December 4, 2025
+      </p>
+    </header>
+  </div>
+
+  <!-- jobs/[id]/page.tsx -->
+  <div class="card">
+    <h2>jobs/[id]/page.tsx</h2>
+
+    <a href="#" class="annotation" data-class="text-secondary hover:text-[#0A5D61]" style="color: #0D7377; font-size: 0.875rem; font-weight: 500; display: inline-block; text-decoration: none;">
+      ← Back to Jobs Board
+    </a>
+
+    <h2 class="annotation heading-2" data-class=".heading-2" style="margin-top: 1.5rem;">
+      Spanish — Maria Rodriguez Zoom
+    </h2>
+  </div>
+
+  <!-- Two-Column Grid: JobOverviewCard and OrganizationLocationCard -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+    <!-- JobOverviewCard -->
+    <div class="card" style="margin-bottom: 0;">
+      <h2>JobOverviewCard.tsx</h2>
+
+      <div style="border-bottom: 1px solid #E5E7EB; padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <h3 class="annotation heading-3" data-class=".heading-3" style="margin-bottom: 0;">Commitment Block</h3>
+        <select style="background: white; border: 1px solid #E5E7EB; border-radius: 0.375rem; padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer;">
+          <option>Pending</option>
+          <option>Confirmed</option>
+        </select>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div>
+          <!-- IMPLEMENTATION NOTE: Need to create EditDateTimeModal component
+               - Edit button should open modal to modify job.start_time and job.end_time
+               - Modal should have date picker and time pickers for start/end times
+               - Similar pattern to EditClientRequestModal -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+            <div class="annotation caption" data-class=".caption">
+              Date & Time
+            </div>
+            <button class="annotation" data-class="text-secondary hover:text-[#0A5D61]" style="color: #0D7377; font-size: 0.75rem; font-weight: 500; background: none; border: none; cursor: pointer;">
+              Edit
+            </button>
+          </div>
+          <div class="annotation info-field-value" data-class=".info-field-value">
+            Wednesday, Dec 4, 2025<br>
+            10:00 AM - 12:00 PM
+          </div>
+          <div style="margin-top: 0.5rem;">
+            <span class="annotation" data-class="text-gray-400" style="color: #9CA3AF;">TBD (shows when start_time is null - "To Be Determined")</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="annotation caption" data-class=".caption" style="margin-bottom: 0.25rem;">
+            Modality
+          </div>
+          <select style="background: white; border: 1px solid #E5E7EB; border-radius: 0.375rem; padding: 0.5rem 1rem; font-size: 0.875rem; width: 100%; cursor: pointer;">
+            <option>Zoom</option>
+            <option>In-Person</option>
+            <option>Phone</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid #E5E7EB; margin-top: 1.5rem; padding-top: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <h4 class="annotation heading-4" data-class=".heading-4" style="margin-bottom: 0;">Client Request Details</h4>
+          <button class="annotation" data-class="text-secondary hover:text-[#0A5D61]" style="color: #0D7377; font-size: 0.875rem; font-weight: 500; background: none; border: none; cursor: pointer;">
+            + Add New Request
+          </button>
+        </div>
+
+        <div class="annotation" data-class="hover:bg-gray-50" style="padding: 0.75rem; border-radius: 0.5rem; background: #F9FAFB;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+            <div style="flex: 1;">
+              <div class="annotation" data-class="text-gray-900" style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">
+                John Doe
+              </div>
+              <div class="annotation body-small" data-class=".body-small">
+                Case #12345 — Arraignment
+              </div>
+            </div>
+            <button class="annotation" data-class="text-secondary hover:text-[#0A5D61]" style="color: #0D7377; font-size: 0.875rem; font-weight: 500; background: none; border: none; cursor: pointer;">
+              Edit
+            </button>
+          </div>
+          <!-- IMPLEMENTATION NOTE: Toggle button for request received status
+               - Initially shows "Request Received" text
+               - On click, updates status and shows checkmark
+               - State persists in database -->
+          <button class="annotation" data-class="text-gray-600 hover:text-secondary" style="color: #6B7280; font-size: 0.75rem; font-weight: 500; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+            <span style="width: 1rem; height: 1rem; border: 1px solid #D1D5DB; border-radius: 0.25rem; display: inline-flex; align-items: center; justify-content: center; background: white;">
+              <!-- Checkmark appears when checked -->
+            </span>
+            Request Received
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OrganizationLocationCard -->
+    <div class="card" style="margin-bottom: 0;">
+      <h2>OrganizationLocationCard.tsx</h2>
+
+      <div style="border-bottom: 1px solid #E5E7EB; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h3 class="annotation heading-3" data-class=".heading-3" style="margin-bottom: 0;">Organization & Location</h3>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div>
+          <div class="annotation caption" data-class=".caption" style="margin-bottom: 0.25rem;">
+            Organization
+          </div>
+          <div class="annotation info-field-value" data-class=".info-field-value (gray-900)">Kent Municipal Court</div>
+        </div>
+
+        <div>
+          <div class="annotation caption" data-class=".caption" style="margin-bottom: 0.25rem;">
+            Program
+          </div>
+          <div class="annotation info-field-value" data-class=".info-field-value">Interpreter Services</div>
+        </div>
+
+        <div>
+          <div class="annotation caption" data-class=".caption" style="margin-bottom: 0.25rem;">
+            Location Details
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Example: Zoom modality -->
+            <div class="annotation" data-class="text-gray-900" style="font-weight: bold; color: #111827; font-size: 0.875rem;">
+              Zoom Link
+            </div>
+            <a href="#" class="annotation" data-class="text-secondary hover:text-[#0A5D61]" style="color: #0D7377; font-size: 0.875rem; display: block; word-break: break-all;">
+              https://zoom.us/j/123456789
+            </a>
+
+            <!-- Example: In-Person modality (shown for reference) -->
+            <!-- <div class="annotation" data-class="text-gray-900" style="color: #111827; font-size: 0.875rem;">
+              123 Main St, Kent, WA 98032
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JobNotesSection -->
+  <div class="card">
+    <h2>JobNotesSection.tsx</h2>
+
+    <!-- IMPLEMENTATION NOTE: Need to create AddNoteModal component
+         - Add Note button should open modal to create new job note
+         - Modal should have textarea for note content
+         - Auto-capture timestamp and user on save -->
+    <div style="border-bottom: 1px solid #E5E7EB; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h3 class="annotation heading-3" data-class=".heading-3" style="margin-bottom: 0;">Job Notes</h3>
+        <button class="annotation" data-class="text-secondary hover:text-[#0A5D61]" style="color: #0D7377; font-size: 0.875rem; font-weight: 500; background: none; border: none; cursor: pointer;">
+          + Add Note
+        </button>
+      </div>
+    </div>
+
+    <div style="padding: 1rem; background: #F9FAFB; border-left: 3px solid #0D7377; border-radius: 0.5rem;" class="annotation" data-class="bg-gray-50 border-l-secondary">
+      <div class="annotation caption" data-class=".caption" style="margin-bottom: 0.5rem;">
+        12/04/2025, 9:30 AM - Clinton
+      </div>
+      <div class="annotation" data-class="text-gray-700" style="color: #374151; font-size: 0.875rem;">
+        This is a sample note with text-gray-700 color.
+      </div>
+    </div>
+
+    <div style="text-align: center; padding: 1.5rem; margin-top: 1rem;">
+      <div class="annotation body-small" data-class="text-gray-400" style="color: #9CA3AF;">
+        No notes yet
+      </div>
+    </div>
+  </div>
+
+  <!-- InterpreterManagement (Merged: JobAssignmentTracker + InterpretersCard) -->
+  <div class="card">
+    <h2>InterpreterManagement.tsx (formerly JobAssignmentTracker + InterpretersCard)</h2>
+
+    <div style="border-bottom: 1px solid #E5E7EB; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+      <h3 class="annotation heading-3" data-class=".heading-3" style="margin-bottom: 0;">Interpreter Management</h3>
+    </div>
+
+    <!-- 1. Currently Assigned Section -->
+    <div style="margin-bottom: 1.5rem;">
+      <h4 class="annotation heading-4" data-class=".heading-4" style="margin-bottom: 0.75rem;">
+        Currently Assigned
+      </h4>
+
+      <div class="annotation" data-class="bg-gray-50" style="background: #F9FAFB; padding: 1rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: start;">
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="annotation" data-class="text-gray-900" style="color: #111827; font-weight: 500; font-size: 1.125rem;">
+              Maria Rodriguez
+            </span>
+            <span class="annotation" data-class="bg-cert-bg text-cert-text" style="background: #D1FAE5; color: #065F46; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
+              Certified
+            </span>
+          </div>
+          <div class="annotation body-small" data-class=".body-small" style="color: #6B7280;">Language: Spanish</div>
+        </div>
+        <button class="annotation" data-class="text-red-600 hover:text-red-800" style="color: #DC2626; font-size: 0.875rem; font-weight: 500; background: none; border: none; cursor: pointer;">
+          Remove
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Pending Responses Section -->
+    <div style="margin-bottom: 1.5rem;">
+      <h4 class="annotation heading-4" data-class=".heading-4" style="margin-bottom: 0.75rem;">
+        Pending Responses (2)
+      </h4>
+
+      <div class="annotation" data-class="border-yellow-200 bg-yellow-50" style="border: 1px solid #FDE68A; background: #FFFBEB; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 0.75rem;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span class="annotation" data-class="text-gray-900" style="font-weight: 500; color: #111827;">
+                Maria Garcia
+              </span>
+              <span class="annotation caption" data-class=".caption" style="color: #B45309; font-size: 0.75rem;">
+                Contacted 9:15 AM
+              </span>
+            </div>
+            <div class="annotation" data-class="text-gray-600" style="color: #4B5563; font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem;">
+              <a href="tel:555-123-4567" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                (555) 123-4567
+              </a>
+              <a href="mailto:maria@example.com" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                maria@example.com
+              </a>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button class="annotation" data-class="text-red-600 hover:text-red-800" style="color: #DC2626; font-size: 0.875rem; background: none; border: none; cursor: pointer; font-weight: 500;">
+              Declined/Unavailable
+            </button>
+            <button class="annotation" data-class="text-green-600 hover:text-green-800" style="color: #16A34A; font-size: 0.875rem; background: none; border: none; cursor: pointer; font-weight: 500;">
+              Accepted
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="annotation" data-class="border-yellow-200 bg-yellow-50" style="border: 1px solid #FDE68A; background: #FFFBEB; border-radius: 0.5rem; padding: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 0.75rem;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span class="annotation" data-class="text-gray-900" style="font-weight: 500; color: #111827;">
+                John Smith
+              </span>
+              <span class="annotation caption" data-class=".caption" style="color: #B45309; font-size: 0.75rem;">
+                Contacted 8:45 AM
+              </span>
+            </div>
+            <div class="annotation" data-class="text-gray-600" style="color: #4B5563; font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem;">
+              <a href="tel:555-987-6543" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                (555) 987-6543
+              </a>
+              <a href="mailto:john@example.com" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                john@example.com
+              </a>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button class="annotation" data-class="text-red-600 hover:text-red-800" style="color: #DC2626; font-size: 0.875rem; background: none; border: none; cursor: pointer; font-weight: 500;">
+              Declined/Unavailable
+            </button>
+            <button class="annotation" data-class="text-green-600 hover:text-green-800" style="color: #16A34A; font-size: 0.875rem; background: none; border: none; cursor: pointer; font-weight: 500;">
+              Accepted
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Available to Contact Section -->
+    <div>
+      <h4 class="annotation heading-4" data-class=".heading-4" style="margin-bottom: 0.75rem;">
+        Available to Contact (5)
+      </h4>
+
+      <div class="annotation" data-class="border-gray-200 hover:border-secondary" style="border: 1px solid #E5E7EB; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 0.75rem;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span class="annotation" data-class="text-gray-400" style="color: #9CA3AF; font-size: 0.875rem; font-weight: 600;">
+                #1
+              </span>
+              <span class="annotation" data-class="text-gray-900" style="font-weight: 500; color: #111827;">
+                Ana Martinez
+              </span>
+              <span class="annotation" data-class="bg-cert-bg text-cert-text" style="background: #D1FAE5; color: #065F46; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
+                Certified
+              </span>
+            </div>
+            <div class="annotation" data-class="text-gray-600" style="color: #4B5563; font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem;">
+              <a href="tel:555-234-5678" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                (555) 234-5678
+              </a>
+              <a href="mailto:ana@example.com" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                ana@example.com
+              </a>
+            </div>
+          </div>
+          <button class="annotation" data-class="button-primary" style="background: #1B365C; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer; white-space: nowrap;">
+            Contact
+          </button>
+        </div>
+      </div>
+
+      <div class="annotation" data-class="border-gray-200 hover:border-secondary" style="border: 1px solid #E5E7EB; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 0.75rem;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span class="annotation" data-class="text-gray-400" style="color: #9CA3AF; font-size: 0.875rem; font-weight: 600;">
+                #2
+              </span>
+              <span class="annotation" data-class="text-gray-900" style="font-weight: 500; color: #111827;">
+                Luis Rodriguez
+              </span>
+              <span class="annotation" data-class="badge-info" style="background: #DBEAFE; color: #1E40AF; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
+                Registered
+              </span>
+            </div>
+            <div class="annotation" data-class="text-gray-600" style="color: #4B5563; font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem;">
+              <a href="tel:555-345-6789" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                (555) 345-6789
+              </a>
+              <a href="mailto:luis@example.com" class="annotation" data-class="hover:text-primary" style="color: #4B5563; text-decoration: none;">
+                luis@example.com
+              </a>
+            </div>
+          </div>
+          <button class="annotation" data-class="button-primary" style="background: #1B365C; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer; white-space: nowrap;">
+            Contact
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="annotation" data-class="flex items-center justify-between" style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #E5E7EB;">
+        <p class="annotation body-small" data-class=".body-small text-gray-600" style="color: #6B7280;">
+          Showing 2 of 5 interpreters
+        </p>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="annotation" data-class="button-secondary" style="background: white; border: 1px solid #E5E7EB; color: #374151; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; hover:bg-gray-50;">
+            Previous
+          </button>
+          <button class="annotation" data-class="button-primary" style="background: #1B365C; color: white; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer;">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="annotation" data-class="bg-gray-50 text-gray-500" style="text-align: center; padding: 1.5rem; background: #F9FAFB; border-radius: 0.5rem; margin-top: 1rem; color: #6B7280; border: 1px solid #E5E7EB;">
+        <div style="font-weight: 500;">No Available Interpreters Found</div>
+        <div class="body-small" style="margin-top: 0.25rem;">Try adjusting the job requirements or check interpreter availability.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ActionButton -->
+  <div class="card">
+    <h2>ActionButton.tsx</h2>
+
+    <button class="annotation" data-class="bg-secondary + gap-4 p-4" style="width: 100%; display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 0.5rem; background: #0D7377; color: white; margin-bottom: 1rem; border: none; cursor: pointer;">
+      <span style="font-size: 1.5rem;">➕</span>
+      <div style="text-align: left;">
+        <p style="font-weight: 500;">Create New Job</p>
+        <p class="body-small" style="opacity: 0.8;">Start a new interpretation request</p>
+      </div>
+    </button>
+
+    <button class="annotation" data-class="bg-gray-100 hover:bg-gray-200 text-gray-900" style="width: 100%; display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 0.5rem; background: #F3F4F6; color: #111827; border: none; cursor: pointer;">
+      <span style="font-size: 1.5rem;">📋</span>
+      <div style="text-align: left;">
+        <p style="font-weight: 500;">View All Jobs</p>
+        <p class="body-small" style="opacity: 0.8;">See the complete jobs list</p>
+      </div>
+    </button>
+  </div>
+
+  <!-- Color Palette Reference -->
+  <div class="card">
+    <h2>Complete Color Palette Reference</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+      <div>
+        <div style="background: #1B365C; padding: 1rem; border-radius: 0.5rem; color: white; margin-bottom: 0.5rem;">primary</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#1B365C / bg-primary</code>
+      </div>
+
+      <div>
+        <div style="background: #0D7377; padding: 1rem; border-radius: 0.5rem; color: white; margin-bottom: 0.5rem;">secondary</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#0D7377 / bg-secondary</code>
+      </div>
+
+      <div>
+        <div style="background: #F9FAFB; border: 1px solid #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">gray-50</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#F9FAFB / bg-gray-50</code>
+      </div>
+
+      <div>
+        <div style="background: #F3F4F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">gray-100</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#F3F4F6 / bg-gray-100</code>
+      </div>
+
+      <div>
+        <div style="background: #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">gray-200</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#E5E7EB / bg-gray-200</code>
+      </div>
+
+      <div>
+        <div style="background: white; border: 1px solid #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; color: #9CA3AF;">gray-400 text</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#9CA3AF / text-gray-400</code>
+      </div>
+
+      <div>
+        <div style="background: white; border: 1px solid #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; color: #6B7280;">gray-500 text</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#6B7280 / text-gray-500</code>
+      </div>
+
+      <div>
+        <div style="background: white; border: 1px solid #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; color: #4B5563;">gray-600 text</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#4B5563 / text-gray-600</code>
+      </div>
+
+      <div>
+        <div style="background: white; border: 1px solid #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; color: #374151;">gray-700 text</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#374151 / text-gray-700</code>
+      </div>
+
+      <div>
+        <div style="background: white; border: 1px solid #E5E7EB; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; color: #111827;">gray-900 text</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">#111827 / text-gray-900</code>
+      </div>
+
+      <div>
+        <div style="background: #D1FAE5; color: #065F46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">cert badge</div>
+        <code style="font-size: 0.75rem; color: #6B7280;">bg-cert-bg text-cert-text</code>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 2rem; padding: 1.5rem; background: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 0.5rem;">
+    <h3 style="color: #92400E; margin-bottom: 0.5rem;">How to Use This Reference</h3>
+    <p style="color: #78350F; font-size: 0.875rem; line-height: 1.6;">
+      This mockup now shows the COMPLETE production styling including fonts (Inter/Poppins), spacing (using design system gap/padding), flexbox layouts, and all color classes. Each element is annotated with yellow labels showing the class names. The typography specimens at the top show all heading sizes and text styles with their exact specs. When you see something that needs to change, tell me the class name and component, and I'll update the actual production files.
+    </p>
+  </div>
+</body>
+</html>

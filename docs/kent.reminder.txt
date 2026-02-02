@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+**subject-line:** Reminder: {{ $json['1:15PM'] }} ZOOM assignment tomorrow
+<html>
+  <body>
+    <p style="text-align: left; white-space: pre-wrap;">You are scheduled for [Court] Municipal Court tomorrow, {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}.
+
+<strong>IMPORTANT
+<i>Kent Municipal Court requires you to check in and out using the chat.</i></strong>
+ (1) AS SOON AS you log on, please chat Everyone on Zoom (because this is the time the clerk will sign you in):
+<strong>{{ $json.body.data.properties.Name.title[0].text.content.split(' ')[0] }} Interpreter present</strong>
+ (2) Before you log off, please chat Everyone on Zoom:
+<strong>{{ $json.body.data.properties.Name.title[0].text.content.split(' ')[0] }} Interpreter finished</strong>
+ (3) Please double-check that your name on Zoom appears as: <br><strong>{{ [Language].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }}</strong>
+
+{{ $('cleanDescription').item.json.text }}
+</p>
+</body>
+</html>

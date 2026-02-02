@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+web/node_modules/
+
+# Build outputs
+web/.next/
+web/out/
+web/build/
+web/dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+web/.env
+web/.env.local
+web/.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Misc
+*.swp
+*.swo
+*~
