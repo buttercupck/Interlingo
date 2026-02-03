@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Users, Mail, Send, UserX, History } from 'lucide-react';
+import { ArrowLeft, Users, Mail, Send, UserX, History, GitBranch } from 'lucide-react';
 import { useJob } from '@/lib/hooks/useJob';
 import { useInterpreterMatches } from '@/lib/hooks/useInterpreterMatches';
 import { JobOverviewCard } from '@/components/jobs/JobOverviewCard';
@@ -13,6 +13,7 @@ import { EmailComposer } from '@/components/jobs/EmailComposer';
 import { AssignmentAttemptList } from '@/components/jobs/AssignmentAttemptList';
 import { CommunicationHistory } from '@/components/jobs/CommunicationHistory';
 import { StatusHistoryTimeline } from '@/components/jobs/StatusHistoryTimeline';
+import { VersionHistoryTimeline } from '@/components/jobs/VersionHistoryTimeline';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -135,6 +136,27 @@ export default function JobDetailPage() {
             <CollapsibleContent>
               <CardContent>
                 <StatusHistoryTimeline jobId={job.id} />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Version History */}
+        <Card>
+          <Collapsible>
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <GitBranch className="h-5 w-5" />
+                    Version History
+                  </h3>
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <VersionHistoryTimeline jobId={job.id} />
               </CardContent>
             </CollapsibleContent>
           </Collapsible>
