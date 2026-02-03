@@ -40,7 +40,7 @@ export function useInterpreterFilters(
     // Filter 1: Languages (match ANY language)
     if (filters.languages && filters.languages.length > 0) {
       filtered = filtered.filter((interpreter) => {
-        return interpreter.interpreter_languages?.some((il: any) =>
+        return interpreter.interpreter_languages?.some((il) =>
           filters.languages!.includes(il.language_id || '')
         );
       });
@@ -52,7 +52,7 @@ export function useInterpreterFilters(
         // Get all unique certification levels for this interpreter
         const interpreterCertLevels = new Set<CertificationLevel>();
 
-        interpreter.interpreter_languages?.forEach((il: any) => {
+        interpreter.interpreter_languages?.forEach((il) => {
           if (il.certification === 'Certified') {
             interpreterCertLevels.add('Certified');
           } else if (il.certification === 'Registered') {
@@ -128,7 +128,7 @@ export function useInterpreterFilters(
           // Sort by highest certification level
           // Certified = 3, Registered = 2, Non-certified = 1
           const getCertLevel = (interpreter: InterpreterWithLanguages): number => {
-            const levels = interpreter.interpreter_languages?.map((il: any) => {
+            const levels = interpreter.interpreter_languages?.map((il) => {
               if (il.certification === 'Certified') return 3;
               if (il.certification === 'Registered') return 2;
               return 1;
@@ -212,12 +212,12 @@ export function getHighestCertification(
   interpreter: InterpreterWithLanguages
 ): CertificationLevel {
   const hasCertified = interpreter.interpreter_languages?.some(
-    (il: any) => il.certification === 'Certified'
+    (il) => il.certification === 'Certified'
   );
   if (hasCertified) return 'Certified';
 
   const hasRegistered = interpreter.interpreter_languages?.some(
-    (il: any) => il.certification === 'Registered'
+    (il) => il.certification === 'Registered'
   );
   if (hasRegistered) return 'Registered';
 
@@ -234,7 +234,7 @@ export function getSupportedModalities(
   interpreter: InterpreterWithLanguages
 ): ModalityType[] {
   const prefs = interpreter.modality_preferences || [];
-  return prefs.filter((p: any): p is ModalityType =>
+  return prefs.filter((p): p is ModalityType =>
     ['In-Person', 'Zoom', 'Phone'].includes(p)
   );
 }

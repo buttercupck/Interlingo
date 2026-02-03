@@ -91,7 +91,7 @@ export function useInterpreterSearch(
 
       // Search language names
       const languages = interpreter.interpreter_languages || [];
-      const hasLanguageMatch = languages.some((il: any) =>
+      const hasLanguageMatch = languages.some((il) =>
         il.language?.name?.toLowerCase().includes(searchTerm)
       );
       if (hasLanguageMatch) {
@@ -175,7 +175,7 @@ export function useAdvancedInterpreterSearch(
     if (searchCriteria.language) {
       const langTerm = searchCriteria.language.toLowerCase().trim();
       results = results.filter((int) =>
-        int.interpreter_languages?.some((il: any) =>
+        int.interpreter_languages?.some((il) =>
           il.language?.name?.toLowerCase().includes(langTerm)
         )
       );
@@ -185,7 +185,7 @@ export function useAdvancedInterpreterSearch(
     if (searchCriteria.certification) {
       results = results.filter((int) =>
         int.interpreter_languages?.some(
-          (il: any) => il.certification === searchCriteria.certification
+          (il) => il.certification === searchCriteria.certification
         )
       );
     }

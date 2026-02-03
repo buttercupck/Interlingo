@@ -19,7 +19,7 @@ export function generateICS(job: JobWithDetails): string {
   const endTime = job.end_time ? formatICSDate(job.end_time) : '';
 
   // Build title: "Language - Client Name (Modality)"
-  const languages = job.client_requests?.map((req: any) => req.language?.name || 'Unknown').join('/') || 'Unknown';
+  const languages = job.client_requests?.map(req => req.language?.name || 'Unknown').join('/') || 'Unknown';
   const clientName = job.client_requests?.[0]?.client_name || 'Unknown Client';
   const modality = job.modality || 'TBD';
   const title = `${languages} - ${clientName} (${modality})`;
@@ -35,7 +35,7 @@ export function generateICS(job: JobWithDetails): string {
 
   // Case numbers
   if (job.client_requests && job.client_requests.length > 0) {
-    job.client_requests.forEach((req: any) => {
+    job.client_requests.forEach(req => {
       if (req.case_number) {
         descriptionLines.push(`Case Number: ${req.case_number}`);
       }

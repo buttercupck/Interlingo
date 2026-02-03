@@ -1,10 +1,10 @@
 ---
 created_datetime: 2025-10-06T21:09:30-07:00
-last_edited_datetime: 2026-02-02T11:50:00-08:00
+last_edited_datetime: 2025-12-29T18:39:04-08:00
 ---
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
--- Last Updated: 2026-02-02 (includes migration 008)
+-- Last Updated: 2025-12-29
 
 -- ============================================================================
 -- CORE TABLES
@@ -56,20 +56,8 @@ CREATE TABLE public.interpreters (
   agency_contact_phone text,
   modality_preferences ARRAY,
   is_local boolean DEFAULT false,
-  -- Added in migration 008
-  requires_reconfirmation boolean DEFAULT false,
-  check_rate_with_court boolean DEFAULT false,
-  is_currently_out boolean DEFAULT false,
-  no_booking_from_date date,
-  secondary_emails text[],
   CONSTRAINT interpreters_pkey PRIMARY KEY (id)
 );
-
-COMMENT ON COLUMN interpreters.requires_reconfirmation IS 'If true, add "PLEASE RECONFIRM" to email subject line';
-COMMENT ON COLUMN interpreters.check_rate_with_court IS 'If true, verify rate with court before confirming assignment';
-COMMENT ON COLUMN interpreters.is_currently_out IS 'If true, interpreter is currently unavailable (Notion OUT flag)';
-COMMENT ON COLUMN interpreters.no_booking_from_date IS 'Date when NO BOOKING FROM restriction starts';
-COMMENT ON COLUMN interpreters.secondary_emails IS 'Additional email addresses from Notion (Secondary Email, Third Email)';
 
 CREATE TABLE public.interpreter_aliases (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

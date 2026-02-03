@@ -118,7 +118,7 @@ export function InterpreterManagement({ job, className }: InterpreterManagementP
                       {attempt.interpreter.email} • {attempt.interpreter.phone}
                     </div>
                     <div className="caption text-gray-500 mt-1">
-                      Contacted: {new Date(attempt.attempted_at).toLocaleString()}
+                      Contacted: {new Date(attempt.contacted_at).toLocaleString()}
                     </div>
                   </div>
 

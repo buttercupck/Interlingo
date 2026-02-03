@@ -203,7 +203,7 @@ export function JobOverviewCard({ job, className }: JobOverviewCardProps) {
               + Add New Request
             </button>
           </div>
-          {job.client_requests.map((request: any, idx: number) => (
+          {job.client_requests.map((request, idx) => (
             <div key={request.id} className="group relative mb-3 last:mb-0 p-3 rounded-lg hover:bg-gray-50 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1 space-y-1">

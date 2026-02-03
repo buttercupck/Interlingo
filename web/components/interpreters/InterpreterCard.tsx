@@ -99,7 +99,7 @@ export function InterpreterCard({
             Languages
           </h4>
           <ul className="space-y-1" aria-label="Languages spoken">
-            {displayLanguages.map((il: any) => (
+            {displayLanguages.map((il) => (
               <li
                 key={il.id}
                 className="body-small flex items-center gap-2"

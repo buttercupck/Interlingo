@@ -49,6 +49,7 @@ export function QuickAssignTable({ job, className }: QuickAssignTableProps) {
   const isWithinDeclineWindow = (interpreterId: string) => {
     const attempt = getAttemptStatus(interpreterId);
     if (!attempt || attempt.status !== 'declined') return false;
+    if (!job.start_time || !job.end_time) return false;
 
     const jobStart = new Date(job.start_time);
     const jobEnd = new Date(job.end_time);

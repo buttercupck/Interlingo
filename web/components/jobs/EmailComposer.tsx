@@ -51,10 +51,9 @@ export function EmailComposer({ job, className }: EmailComposerProps) {
       warnings.push('Missing job date/time');
     }
 
-    // TODO: Re-enable after regenerating types
-    // if (!job.location?.zoom_link && job.modality === 'Zoom') {
-    //   warnings.push('Missing Zoom link');
-    // }
+    if (!job.location?.zoom_link && job.modality === 'Zoom') {
+      warnings.push('Missing Zoom link');
+    }
 
     let subject = '';
     let body = '';
@@ -89,20 +88,19 @@ ${orgName}
         body += instructions + '\n\n';
       }
 
-      // TODO: Re-enable after regenerating types
       // Add Zoom information if available
-      // if (job.location?.zoom_link) {
-      //   body += `${job.location.zoom_link}
-      // `;
-      //   if (job.location.zoom_login) {
-      //     body += `${job.location.zoom_login}
-      // `;
-      //   }
-      //   body += '\n';
-      // }
+      if (job.location?.zoom_link) {
+        body += `${job.location.zoom_link}
+`;
+        if (job.location.zoom_login) {
+          body += `${job.location.zoom_login}
+`;
+        }
+        body += '\n';
+      }
 
       // Add client request details - loop through all requests
-      clientRequests.forEach((request: any) => {
+      clientRequests.forEach((request) => {
         if (request.client_name) {
           body += `\t${request.client_name}
 `;
@@ -127,7 +125,7 @@ ${orgName}
 `;
 
       // Add client request details - loop through all requests
-      clientRequests.forEach((request: any) => {
+      clientRequests.forEach((request) => {
         if (request.client_name) {
           body += `${request.client_name}
 `;
@@ -161,18 +159,17 @@ ${orgName}
         body += instructions + '\n\n';
       }
 
-      // TODO: Re-enable after regenerating types
       // Add Zoom link if available
-      // if (job.location?.zoom_link) {
-      //   body += `${job.location.zoom_link}\n`;
-      //   if (job.location.zoom_login) {
-      //     body += `${job.location.zoom_login}\n`;
-      //   }
-      //   body += '\n';
-      // }
+      if (job.location?.zoom_link) {
+        body += `${job.location.zoom_link}\n`;
+        if (job.location.zoom_login) {
+          body += `${job.location.zoom_login}\n`;
+        }
+        body += '\n';
+      }
 
       // Add client details
-      clientRequests.forEach((request: any) => {
+      clientRequests.forEach((request) => {
         if (request.client_name) {
           body += `\t${request.client_name}\n`;
         }
