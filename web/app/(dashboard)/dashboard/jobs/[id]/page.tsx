@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeft, Users, Mail, Send, UserX } from 'lucide-react';
 import { useJob } from '@/lib/hooks/useJob';
 import { useInterpreterMatches } from '@/lib/hooks/useInterpreterMatches';
 import { JobOverviewCard } from '@/components/jobs/JobOverviewCard';
@@ -9,6 +10,11 @@ import { OrganizationLocationCard } from '@/components/jobs/OrganizationLocation
 import { InterpreterManagement } from '@/components/jobs/InterpreterManagement';
 import { JobNotesSection } from '@/components/jobs/JobNotesSection';
 import { EmailComposer } from '@/components/jobs/EmailComposer';
+import { AssignmentAttemptList } from '@/components/jobs/AssignmentAttemptList';
+import { CommunicationHistory } from '@/components/jobs/CommunicationHistory';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -22,7 +28,7 @@ export default function JobDetailPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-gray-500 mt-4">Loading job details...</p>
+          <p className="text-muted-foreground mt-4">Loading job details...</p>
         </div>
       </div>
     );
@@ -30,87 +36,164 @@ export default function JobDetailPage() {
 
   if (error || !job) {
     return (
-      <div className="max-w-2xl mx-auto mt-12">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Job Not Found</h2>
-          <p className="text-gray-600 mb-6">
-            {error instanceof Error ? error.message : 'This job could not be loaded'}
-          </p>
-          <Link
-            href="/dashboard/jobs"
-            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-[#1B365C] rounded-md hover:bg-[#2D4A6B] hover:-translate-y-0.5 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            ← Back to Jobs Board
-          </Link>
-        </div>
+      <div className="container mx-auto p-6">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="rounded-full bg-red-100 p-3">
+                <UserX className="h-8 w-8 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-2">Job Not Found</h2>
+                <p className="text-muted-foreground mb-6">
+                  {error instanceof Error ? error.message : 'This job could not be loaded'}
+                </p>
+              </div>
+              <Link href="/dashboard/jobs">
+                <Button>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Jobs Board
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="container mx-auto p-6 max-w-7xl">
       <div className="space-y-6">
         {/* Back Button */}
-        <Link
-          href="/dashboard/jobs"
-          className="text-secondary hover:text-[#0A5D61] text-sm inline-block font-medium transition-colors"
-        >
-          ← Back to Jobs Board
+        <Link href="/dashboard/jobs">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Jobs Board
+          </Button>
         </Link>
 
-      {/* Job Title */}
-      <h2 className="heading-2">
-        {/* Multi-language format: Language1/Language2 or single language */}
-        {job.client_requests && job.client_requests.length > 0
-          ? job.client_requests.map((req: any, idx: any) => req.language?.name || 'Unknown').join('/')
-          : 'Unknown Language'
-        } — {job.interpreter ? `${job.interpreter.first_name} ${job.interpreter.last_name}` : 'Unassigned'} {job.modality || 'TBD'}
-      </h2>
-
-      {/* Two-Column Grid: Job Overview and Organization Cards */}
-      <div className="grid grid-cols-2 gap-6">
-        <JobOverviewCard job={job} />
-        <OrganizationLocationCard job={job} />
-      </div>
-
-      {/* Interpreter Management (replaces QuickAssignTable) */}
-      <InterpreterManagement job={job} />
-
-      {/* Job Notes Section (full-width) */}
-      <JobNotesSection jobId={job.id} />
-
-      {/* Email Composer (collapsible - kept for now) */}
-      <details className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <summary className="cursor-pointer font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-          ✉️ Email Composer
-        </summary>
-        <div className="mt-4">
-          <EmailComposer job={job} />
+        {/* Job Title */}
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {job.client_requests && job.client_requests.length > 0
+              ? job.client_requests.map((req: any) => req.language?.name || 'Unknown').join('/')
+              : 'Unknown Language'}
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            {job.interpreter ? `${job.interpreter.first_name} ${job.interpreter.last_name}` : 'Unassigned'} • {job.modality || 'TBD'}
+          </p>
         </div>
-      </details>
 
-      {/* Unavailable Interpreters (collapsible) */}
-      {matchData && matchData.unavailable.length > 0 && (
-        <details className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <summary className="cursor-pointer font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-            ⛔ Unavailable Interpreters ({matchData.unavailable.length})
-          </summary>
-          <div className="mt-4 space-y-2">
-            {matchData.unavailable.map(({ interpreter, reason }) => (
-              <div
-                key={interpreter.id}
-                className="flex items-center justify-between text-sm py-2 border-b border-gray-200 last:border-0"
-              >
-                <span className="text-gray-700">
-                  {interpreter.first_name} {interpreter.last_name}
-                </span>
-                <span className="text-gray-500 text-xs">{reason}</span>
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
+        {/* Two-Column Grid: Job Overview and Organization Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <JobOverviewCard job={job} />
+          <OrganizationLocationCard job={job} />
+        </div>
+
+        {/* Interpreter Management */}
+        <InterpreterManagement job={job} />
+
+        {/* Job Notes Section */}
+        <JobNotesSection jobId={job.id} />
+
+        {/* Assignment Attempts Workflow */}
+        <Card>
+          <Collapsible>
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Assignment History
+                  </h3>
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <AssignmentAttemptList jobId={job.id} />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Communication History */}
+        <Card>
+          <Collapsible>
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    Communication History
+                  </h3>
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <CommunicationHistory jobId={job.id} />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Email Composer */}
+        <Card>
+          <Collapsible>
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Send className="h-5 w-5" />
+                    Email Composer
+                  </h3>
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <EmailComposer job={job} />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Unavailable Interpreters */}
+        {matchData && matchData.unavailable.length > 0 && (
+          <Card>
+            <Collapsible>
+              <CardHeader>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <UserX className="h-5 w-5" />
+                      Unavailable Interpreters ({matchData.unavailable.length})
+                    </h3>
+                  </Button>
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent>
+                  <div className="space-y-2">
+                    {matchData.unavailable.map(({ interpreter, reason }) => (
+                      <div
+                        key={interpreter.id}
+                        className="flex items-center justify-between py-2 border-b last:border-0"
+                      >
+                        <span className="text-sm font-medium">
+                          {interpreter.first_name} {interpreter.last_name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -1223,3 +1223,5 @@ pm2 restart interlingo
 ---
 
 **End of Council Analysis**
+
+sed -i /NEXT_PUBLIC_SUPABASE_ANON_KEY=.*/NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFucWZkdnloZXhweGRwZ2JrZ21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NzUyNTYsImV4cCI6MjA2NTE1MTI1Nn0.VMUTXMtzBb4_PB5BLuUyv-AlStakV2oF97E6pYrdKAQ' /home/deploy/Interlingo/web/.env

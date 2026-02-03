@@ -1,0 +1,3592 @@
+{
+  "updatedAt": "2025-11-21T19:47:44.764Z",
+  "createdAt": "2024-12-28T21:15:15.255Z",
+  "id": "5bvj8SaECWqr44RZ",
+  "name": "webhook.confirmation.interpreter",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.properties['Interperter '].rollup.array[0].title[0].text.content }} CONFIRMED In-Person {{ $json.GMAIL_SUBJECTLINETIME }} ",
+        "message": "={{ $json.CONF1_TIME }}\n{{ $json['CONF2 _TIME'] }} In Person\n\n{{ $json.properties.Court.rich_text[0].text.content }}\n\n{{ $json.properties.Name.title[0].text.content.split(' ')[0].toUpperCase() }}:\n{{ $json.properties.Description.rich_text[0].plain_text }} ",
+        "options": {}
+      },
+      "id": "e9d3a8e9-1442-46b9-ae07-103d4087e664",
+      "name": "CONF_INPERSON_EMAIL1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        1728
+      ],
+      "webhookId": "89befe6f-d3cd-42fc-b942-990d5c6133e4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+        "format": "custom",
+        "customFormat": "=DDD",
+        "outputFieldName": "=August 10, 2024",
+        "options": {}
+      },
+      "id": "159a0e3b-3411-4c3c-9bb1-9607068f5472",
+      "name": "August 10, 2024",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        544
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+        "format": "custom",
+        "customFormat": "=LLLL d' at' t",
+        "outputFieldName": "August 10 at 1:00AM",
+        "options": {
+          "timezone": true
+        }
+      },
+      "id": "e030d02c-7a41-4ed1-a056-d5126e6ffd1d",
+      "name": "August 10 at 1:00AM",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        688
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+        "format": "custom",
+        "customFormat": "=cccc',' LLLL d",
+        "outputFieldName": "Monday, August 10",
+        "options": {
+          "timezone": true
+        }
+      },
+      "id": "7bf903d4-9f70-4d73-9cb7-9173c3858894",
+      "name": "Monday, August 10",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        848
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+        "format": "custom",
+        "customFormat": "=t",
+        "outputFieldName": "1:15PM",
+        "options": {
+          "timezone": true
+        }
+      },
+      "id": "e70b6438-cf09-4324-b4aa-fc7be1ba588e",
+      "name": "1:15PM",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        1024
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "8c4b3979-6fe2-4bef-a457-59176db37405",
+              "leftValue": "={{ $json.body.data.properties[\"timezone.interpreters\"].rollup.array[0].checkbox }}",
+              "rightValue": "={{ $json.properties.Timezone.rollup.array[0] }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2408e574-1d72-4ba4-bb8a-3934ad3230e0",
+      "name": "timezone.interpreter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        272,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text }}\n</p>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "f5e7db28-e050-4e3e-9b73-82e6060944f8",
+      "name": "ACTIVE.ZOOM.other",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        1504
+      ],
+      "webhookId": "d31a0c78-f992-43d0-a4a7-c49b1adf0879",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content}} Municipal Court\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n    </p>\n</body>\n</html>\n\n",
+        "options": {}
+      },
+      "id": "99c6a6d4-58a6-4735-9da9-90d49c3bbe55",
+      "name": "ACTIVE.PST.ZOOM.other",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        368
+      ],
+      "webhookId": "998de55f-abcc-469a-8f5a-b71bec23eb92",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION Phone {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "message": "={{ $json.body.data.properties.Description.rich_text[0].text.content }} \nLaw Firm: Stein, Lotzkar & Starr\n\nThe attorney will call you at {{ $json.body.data.properties['phone.interpeters'].rollup.array[0].phone_number }}. Please give us a call by {{ $('Merge').item.json['30.atty'] }} if you haven’t heard from the attorney, so we can check if you're still needed.\n\nThank you,\nItza Banos\nAdministrative Assistant\nINTERCOM Language Services\n(206) 979-6101\nrequests@intercom.cc\nwww.intercom.cc",
+        "options": {}
+      },
+      "id": "2f14872e-9888-40f5-a8f0-d2ff88f7fab9",
+      "name": "ACTIVE.SLS.phone",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        1360
+      ],
+      "webhookId": "db34b959-bfcb-4ae3-a872-6e51adf2b7b6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} ZOOM\n\nFederal Way Municipal Court\n\nPlease double-check that your name on ZOOM appears as: <strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n</p>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "f606a89b-e00b-487c-9a8c-05253fa749d9",
+      "name": "ACTIVE.ZOOM.fw",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        1008
+      ],
+      "webhookId": "b09b06e0-ef41-44ae-bfb7-f8902ea68978",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION In Person {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} In Person<br><br>\n3-hour-minimum plus mileage\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n        .join(' ') \n      }}<br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n",
+        "options": {}
+      },
+      "id": "edc41e83-3ef6-47f2-bbec-d2e1507181a4",
+      "name": "ACTIVE.InPerson.other",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        992,
+        1760
+      ],
+      "webhookId": "49065bcb-ad07-4a01-96af-05619bb27993",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION In Person {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} In Person<br><br>\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n        .join(' ') \n      }} Municipal Court<br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n",
+        "options": {}
+      },
+      "id": "edfb9461-8813-4ac6-9e5f-2a68e4d268f0",
+      "name": "ACTIVE.Kent.InPerson",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        832
+      ],
+      "webhookId": "a1e6bc9d-8453-47f3-804e-7987f7c36396",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addToDate",
+        "magnitude": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+        "timeUnit": "minutes",
+        "duration": 15,
+        "outputFieldName": "15.attorney.calls",
+        "options": {}
+      },
+      "id": "49330dab-92b0-44ed-ae38-760ee900074e",
+      "name": "15.attorney.calls",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        1200
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "8c4b3979-6fe2-4bef-a457-59176db37405",
+              "leftValue": "={{ $json.properties.Timezone.rollup.array[0].checkbox }}",
+              "rightValue": "={{ $json.properties.Timezone.rollup.array[0] }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "89051efe-f806-40b5-8820-ae7110d346ea",
+      "name": "TimeZone.SLS",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        1728
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION Phone {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+        "message": "=Law Firm: Stein, Lotzkar & Starr\n{{ $json.body.data.properties.Description.rich_text[0].text.content }} \n\nThe attorney will call you at {{ $json.body.data.properties['phone.interpeters'].rollup.array[0].phone_number }}. Please give us a call by {{ $('Merge').item.json['30.atty'] }} PST if you haven’t heard from the attorney, so we can check if you're still needed.\n\n{{ $('Webhook').item.json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} is confirmed and __ phone number is {{ $('Webhook').item.json.body.data.properties['phone.interpeters'].rollup.array[0].phone_number }}.",
+        "options": {}
+      },
+      "id": "5e9b2fa6-a4cc-41b4-8fa0-5b119c8c334c",
+      "name": "ACTIVE.PST.SLS.phone",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        208
+      ],
+      "webhookId": "e1c66762-d7b6-48d7-8866-02b0678a4217",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f0827501-6e9c-4d4c-aa60-b4aa56c447d0",
+        "options": {}
+      },
+      "id": "c2ed53f1-448f-4130-b165-b35a14fc39c4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        800
+      ],
+      "webhookId": "f0827501-6e9c-4d4c-aa60-b4aa56c447d0"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+        "format": "custom",
+        "customFormat": "cccc',' LLLL d",
+        "outputFieldName": "Monday, August 10",
+        "options": {
+          "timezone": true
+        }
+      },
+      "id": "66ba7312-b419-48ac-b31a-7c49d17b5722",
+      "name": "Monday, August 11",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        1424
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Phone"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9f478dcb-4ace-4049-ba75-bfa32349b15e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"in Person\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "In Person"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "600032fc-c168-4940-9f9a-5c981073f4fe",
+      "name": "modality.other",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        720,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "d4c0eb0c-0dad-4d35-996f-010d8c4b14fd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Phone"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8214edb7-598c-4cda-9b35-b9fae6449aa8",
+      "name": "modality.sls",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"in Person\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "In Person"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5d6da5df-9aad-4209-8ecc-ce40d2a054fd",
+      "name": "modality.fw",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Kent') }}",
+                    "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'kent'}}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Kent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "d0d71019-083c-4e6d-bc21-6a00a101606f",
+                    "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Federal Way') }}",
+                    "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'federal way'}}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Federal Way"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "45a156db-385e-4f28-b309-774cde8a6968",
+                    "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Stein, Lotzkar & Starr') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SLS"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "d0b96802-bad6-4750-ab43-0a8f31d7914b",
+      "name": "courts1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        432,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"ZOOM\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Phone"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9c8321fb-b566-4b72-92f2-2f8681c61a63",
+      "name": "modality.other1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        528
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"ZOOM\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Phone"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10f853a9-8b86-4dc2-963f-1fb11cc69645",
+      "name": "modality.SLS",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json['15.attorney.calls'] }}",
+        "format": "custom",
+        "customFormat": "=t",
+        "outputFieldName": "15.addon",
+        "options": {
+          "timezone": true
+        }
+      },
+      "id": "2970a979-5136-4a13-8b36-0eeba5cb55cc",
+      "name": "15.addon",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        1200
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 6,
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "446c99ca-bf40-418c-96c5-f4ac826122d6",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -48,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Kent') }}",
+                    "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'kent'}}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Kent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "d0d71019-083c-4e6d-bc21-6a00a101606f",
+                    "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Federal Way') }}",
+                    "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'federal way'}}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Federal Way"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "45a156db-385e-4f28-b309-774cde8a6968",
+                    "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Stein, Lotzkar & Starr') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SLS"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "37526061-941b-4750-ab10-14058fa636e9",
+      "name": "courts",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        384,
+        1088
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"in Person\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "In Person"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9670b7b8-ec24-4920-856c-b947b770d16d",
+      "name": "modality.kent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\n<strong>IMPORTANT:\n<i>Kent Municipal Court requires you to check in and out using the chat.</i></strong>\n (1) AS SOON AS you log on, please chat Everyone on ZOOM (because this is the time the clerk will sign you in):<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter present</strong>\n (2) Before you log off, please chat Everyone on ZOOM:<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter finished</strong>\n (3) Please double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n</p>\n</body>\n</html>\n\n",
+        "options": {}
+      },
+      "id": "50930781-db2e-4302-b24a-59e090df39f3",
+      "name": "🟢kent.ZOOM",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        688
+      ],
+      "webhookId": "51e64059-6daa-42b0-ab4a-883af0937752",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ZOOM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                    "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Phone"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7d00d4c4-4d0c-4532-b46e-db5332e1509c",
+      "name": "modality.other.PST",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\n<strong>IMPORTANT:\n<i>Kent Municipal Court requires you to check in and out using the chat.</i></strong>\n (1) AS SOON AS you log on, please chat Everyone on ZOOM (because this is the time the clerk will sign you in):<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter present</strong>\n (2) Before you log off, please chat Everyone on ZOOM:<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter finished</strong>\n (3) Please double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n</p>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "4250b4a7-42f2-490c-ac6b-c5696eb658fb",
+      "name": "🟢PST.kent.ZOOM",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        784,
+        -160
+      ],
+      "webhookId": "e9cff5d6-add7-4f96-8fc3-427c4c54b086",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} PST ZOOM<br><br>\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toSentenceCase())\n        .join(' ') \n      }} Municipal Court<br><br>\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong><br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}",
+        "options": {}
+      },
+      "id": "34efcaf6-728d-497f-b582-2f0ed7518941",
+      "name": "ACTIVE.ZOOM.other1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        1232
+      ],
+      "webhookId": "d31a0c78-f992-43d0-a4a7-c49b1adf0879",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\nFederal Way Municipal Court\n\nPlease double-check that your name on ZOOM appears as: <strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n    </p>\n  </body>\n</html>\n\n",
+        "options": {}
+      },
+      "id": "06a03ec0-9603-46ff-83e1-2bed9af8a225",
+      "name": "🟢ZOOM.fw.PST",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        32
+      ],
+      "webhookId": "4b21c353-85bb-436a-8b50-222a0e4f7dcc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content}} Municipal Court\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n    </p>\n</body>\n</html>\n\n",
+        "options": {}
+      },
+      "id": "dee0ed84-bf4b-4036-bdab-846006ce2263",
+      "name": "ACTIVE.PST.ZOOM.other1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        544
+      ],
+      "webhookId": "998de55f-abcc-469a-8f5a-b71bec23eb92",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION In Person {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} In Person<br><br>\n3-hour-minimum plus mileage\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n        .join(' ') \n      }}<br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n",
+        "options": {}
+      },
+      "id": "bc059463-cd2c-4abc-9ee2-e39ad646b480",
+      "name": "ACTIVE.InPerson.other1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        1104
+      ],
+      "webhookId": "49065bcb-ad07-4a01-96af-05619bb27993",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION PHONE {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PHONE\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text }}\n</p>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "9ec1c0f1-c304-4ad0-8b8f-b658f93d268f",
+      "name": "ACTIVE.ZOOM.other2",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        1616
+      ],
+      "webhookId": "d31a0c78-f992-43d0-a4a7-c49b1adf0879",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "August 10, 2024": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "August 10 at 1:00AM": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "1:15PM": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "timezone.interpreter": {
+      "main": [
+        [
+          {
+            "node": "courts1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "courts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15.attorney.calls": {
+      "main": [
+        [
+          {
+            "node": "15.addon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "August 10, 2024",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "August 10 at 1:00AM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "1:15PM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "15.attorney.calls",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          },
+          {
+            "node": "Monday, August 10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modality.other": {
+      "main": [
+        [
+          {
+            "node": "ACTIVE.ZOOM.other",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACTIVE.ZOOM.other2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACTIVE.InPerson.other",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modality.sls": {
+      "main": [
+        [
+          {
+            "node": "ACTIVE.ZOOM.other1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACTIVE.SLS.phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modality.fw": {
+      "main": [
+        [
+          {
+            "node": "ACTIVE.ZOOM.fw",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACTIVE.InPerson.other1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "courts1": {
+      "main": [
+        [
+          {
+            "node": "🟢PST.kent.ZOOM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🟢ZOOM.fw.PST",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "modality.SLS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "modality.other.PST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modality.other1": {
+      "main": [
+        []
+      ]
+    },
+    "modality.SLS": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ACTIVE.PST.SLS.phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monday, August 10": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "15.addon": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "timezone.interpreter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "courts": {
+      "main": [
+        [
+          {
+            "node": "modality.kent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "modality.fw",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "modality.sls",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "modality.other",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modality.kent": {
+      "main": [
+        [
+          {
+            "node": "🟢kent.ZOOM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACTIVE.Kent.InPerson",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modality.other.PST": {
+      "main": [
+        [
+          {
+            "node": "ACTIVE.PST.ZOOM.other",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACTIVE.PST.ZOOM.other1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/Los_Angeles"
+  },
+  "staticData": {
+    "node:Notion Trigger": {
+      "lastTimeChecked": "2024-08-15T00:35:00.000Z",
+      "possibleDuplicates": [
+        "ba8525a9-733b-439f-8b70-d1e1494762ef"
+      ]
+    },
+    "node:Notion Trigger1": {
+      "lastTimeChecked": "2024-12-28T21:14:00.000Z"
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "auto.rnrrecruiting.com",
+            "user-agent": "NotionAutomation",
+            "content-length": "3581",
+            "baggage": "sentry-environment=production,sentry-release=0.0.1361,sentry-public_key=529a6d1990e5471d874257842c4f4ad8,sentry-trace_id=9cf44462e72e441680a1612ac33f8e65",
+            "content-type": "application/json",
+            "sentry-trace": "9cf44462e72e441680a1612ac33f8e65-b1b4aaa3377c4f9d",
+            "traceparent": "00-679be9f20000000062eeb00bd934280f-759c65abe453f0c2-00",
+            "tracestate": "dd=t.tid:679be9f200000000;t.dm:-4;s:-1;p:759c65abe453f0c2",
+            "x-datadog-parent-id": "8474760387748950210",
+            "x-datadog-sampling-priority": "-1",
+            "x-datadog-tags": "_dd.p.tid=679be9f200000000",
+            "x-datadog-trace-id": "7128828825109276687",
+            "x-forwarded-for": "54.191.35.95",
+            "x-forwarded-host": "auto.rnrrecruiting.com",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "1227a294e20f",
+            "x-real-ip": "54.191.35.95",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "source": {
+              "type": "automation",
+              "automation_id": "15ba81b4-e51b-8040-9b3f-004d9efdc8a5",
+              "action_id": "15ba81b4-e51b-8044-b70d-005a52571d25",
+              "event_id": "edc110fb-6b9b-4c57-bc63-057c0cd1546b",
+              "attempt": 1
+            },
+            "data": {
+              "object": "page",
+              "id": "18ba81b4-e51b-8167-bcff-f49c29ef4bf8",
+              "created_time": "2025-01-30T20:31:00.000Z",
+              "last_edited_time": "2025-01-30T21:06:00.000Z",
+              "created_by": {
+                "object": "user",
+                "id": "c9c53b70-ed8e-47ef-9909-e39d95d6a26d"
+              },
+              "last_edited_by": {
+                "object": "user",
+                "id": "eb57822f-e839-4930-b184-641873ee12e1"
+              },
+              "cover": null,
+              "icon": null,
+              "parent": {
+                "type": "database_id",
+                "database_id": "13ea81b4-e51b-803a-8591-c565bf3bea63"
+              },
+              "archived": false,
+              "in_trash": false,
+              "properties": {
+                "\"X\"formula.date.time": {
+                  "id": "B%3ElA",
+                  "type": "formula",
+                  "formula": {
+                    "type": "string",
+                    "string": "1741707000"
+                  }
+                },
+                "accepted.interpreter": {
+                  "id": "MP%7C%60",
+                  "type": "checkbox",
+                  "checkbox": true
+                },
+                "Court": {
+                  "id": "d9a5279a-d45f-474d-94e4-17a3c0cf97b1",
+                  "type": "rich_text",
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Renton",
+                        "link": null
+                      },
+                      "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                      },
+                      "plain_text": "Renton",
+                      "href": null
+                    }
+                  ]
+                },
+                "Description": {
+                  "id": "JOl%3E",
+                  "type": "rich_text",
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "NEERAJ, KUMAR\n4A0792912 - PRETRIAL\n1     ASSAULT 4TH DEGREE\nAtty: Vinny Randhawa\n\nCourtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton",
+                        "link": null
+                      },
+                      "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                      },
+                      "plain_text": "NEERAJ, KUMAR\n4A0792912 - PRETRIAL\n1     ASSAULT 4TH DEGREE\nAtty: Vinny Randhawa\n\nCourtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton",
+                      "href": null
+                    }
+                  ]
+                },
+                "email.interpeters": {
+                  "id": "%5D%5BGd",
+                  "type": "rollup",
+                  "rollup": {
+                    "type": "array",
+                    "array": [
+                      {
+                        "type": "rich_text",
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "kalpna@comcast.net",
+                              "link": {
+                                "url": "mailto:kalpna%20Bentler%20*PUNJABI%20HINDI%20URDU*%20%3Ckalpna%40comcast.net%3E"
+                              }
+                            },
+                            "annotations": {
+                              "bold": false,
+                              "italic": false,
+                              "strikethrough": false,
+                              "underline": false,
+                              "code": false,
+                              "color": "default"
+                            },
+                            "plain_text": "kalpna@comcast.net",
+                            "href": "mailto:kalpna%20Bentler%20*PUNJABI%20HINDI%20URDU*%20%3Ckalpna%40comcast.net%3E"
+                          }
+                        ]
+                      }
+                    ],
+                    "function": "show_unique"
+                  }
+                },
+                "label.calendar": {
+                  "id": "r%60vy",
+                  "type": "status",
+                  "status": {
+                    "id": "68f08fff-b83b-4243-bfe7-caebd2b7ce5b",
+                    "name": "Pending",
+                    "color": "blue"
+                  }
+                },
+                "name.interpeters": {
+                  "id": "QaFd",
+                  "type": "rollup",
+                  "rollup": {
+                    "type": "array",
+                    "array": [
+                      {
+                        "type": "title",
+                        "title": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Kalpna Bentler",
+                              "link": null
+                            },
+                            "annotations": {
+                              "bold": false,
+                              "italic": false,
+                              "strikethrough": false,
+                              "underline": false,
+                              "code": false,
+                              "color": "default"
+                            },
+                            "plain_text": "Kalpna Bentler",
+                            "href": null
+                          }
+                        ]
+                      }
+                    ],
+                    "function": "show_original"
+                  }
+                },
+                "phone.interpeters": {
+                  "id": "WgUF",
+                  "type": "rollup",
+                  "rollup": {
+                    "type": "array",
+                    "array": [
+                      {
+                        "type": "phone_number",
+                        "phone_number": null
+                      }
+                    ],
+                    "function": "show_original"
+                  }
+                },
+                "calendar.date.time": {
+                  "id": "wy%7B%7D",
+                  "type": "date",
+                  "date": {
+                    "start": "2025-03-11T08:30:00.000-07:00",
+                    "end": null,
+                    "time_zone": null
+                  }
+                },
+                "Name": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Hindi - ? Zoom",
+                        "link": null
+                      },
+                      "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                      },
+                      "plain_text": "Hindi - ? Zoom",
+                      "href": null
+                    }
+                  ]
+                },
+                "timezone.interpreters": {
+                  "id": "yC%3D%7B",
+                  "type": "rollup",
+                  "rollup": {
+                    "type": "array",
+                    "array": [
+                      {
+                        "type": "checkbox",
+                        "checkbox": false
+                      }
+                    ],
+                    "function": "show_original"
+                  }
+                }
+              },
+              "url": "https://www.notion.so/Hindi-Zoom-18ba81b4e51b8167bcfff49c29ef4bf8",
+              "public_url": null,
+              "request_id": "448468b1-3705-453d-977d-b29e4e3a3f5c"
+            }
+          },
+          "webhookUrl": "https://auto.rnrrecruiting.com/webhook/f0827501-6e9c-4d4c-aa60-b4aa56c447d0",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "1c60e80e-d92c-43bd-a84d-d90001878574",
+  "activeVersionId": "1c60e80e-d92c-43bd-a84d-d90001878574",
+  "versionCounter": 8,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2024-12-28T21:15:15.264Z",
+      "createdAt": "2024-12-28T21:15:15.264Z",
+      "role": "workflow:owner",
+      "workflowId": "5bvj8SaECWqr44RZ",
+      "projectId": "9U5krb0YOaZEdeu8",
+      "project": {
+        "updatedAt": "2024-08-14T01:53:06.523Z",
+        "createdAt": "2024-08-14T01:53:06.523Z",
+        "id": "9U5krb0YOaZEdeu8",
+        "name": "Itza Intercom <itzabanos@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "7d850e85-d433-42a4-af6e-fac2c6df167b",
+        "projectRelations": [
+          {
+            "updatedAt": "2024-08-14T01:53:06.524Z",
+            "createdAt": "2024-08-14T01:53:06.524Z",
+            "userId": "7d850e85-d433-42a4-af6e-fac2c6df167b",
+            "projectId": "9U5krb0YOaZEdeu8",
+            "user": {
+              "updatedAt": "2026-02-02T08:00:01.000Z",
+              "createdAt": "2024-05-31T15:37:28.586Z",
+              "id": "7d850e85-d433-42a4-af6e-fac2c6df167b",
+              "email": "itzabanos@gmail.com",
+              "firstName": "Itza",
+              "lastName": "Intercom",
+              "personalizationAnswers": {
+                "companyType": "other",
+                "companyIndustryExtended": [
+                  "legal-industry"
+                ],
+                "role": "business-owner",
+                "automationBeneficiary": "my-team",
+                "companySize": "<20",
+                "reportedSource": "youtube",
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-05-31T16:07:03.773Z",
+                "personalization_survey_n8n_version": "1.42.1"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "VWjWbvwlOuqKreRg",
+                "isOnboarded": true,
+                "userActivatedAt": 1723600386734,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1759264210284
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-02",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-01-07T23:50:00.479Z",
+      "createdAt": "2025-01-07T23:50:00.479Z",
+      "id": "CBhzsh8lv6zRqOj0",
+      "name": "fixing"
+    },
+    {
+      "updatedAt": "2024-12-23T19:36:59.079Z",
+      "createdAt": "2024-12-23T19:36:59.079Z",
+      "id": "HIYqjCY5iNaaX0Fb",
+      "name": "intercom"
+    },
+    {
+      "updatedAt": "2024-11-27T20:06:07.992Z",
+      "createdAt": "2024-11-27T20:06:07.992Z",
+      "id": "Vr1EBpS7Pr8uA8HS",
+      "name": "active"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2025-12-16T18:37:03.572Z",
+    "createdAt": "2025-12-16T18:37:03.571Z",
+    "versionId": "1c60e80e-d92c-43bd-a84d-d90001878574",
+    "workflowId": "5bvj8SaECWqr44RZ",
+    "nodes": [
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.properties['Interperter '].rollup.array[0].title[0].text.content }} CONFIRMED In-Person {{ $json.GMAIL_SUBJECTLINETIME }} ",
+          "message": "={{ $json.CONF1_TIME }}\n{{ $json['CONF2 _TIME'] }} In Person\n\n{{ $json.properties.Court.rich_text[0].text.content }}\n\n{{ $json.properties.Name.title[0].text.content.split(' ')[0].toUpperCase() }}:\n{{ $json.properties.Description.rich_text[0].plain_text }} ",
+          "options": {}
+        },
+        "id": "e9d3a8e9-1442-46b9-ae07-103d4087e664",
+        "name": "CONF_INPERSON_EMAIL1",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          -560,
+          1728
+        ],
+        "webhookId": "89befe6f-d3cd-42fc-b942-990d5c6133e4",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+          "format": "custom",
+          "customFormat": "=DDD",
+          "outputFieldName": "=August 10, 2024",
+          "options": {}
+        },
+        "id": "159a0e3b-3411-4c3c-9bb1-9607068f5472",
+        "name": "August 10, 2024",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -320,
+          544
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+          "format": "custom",
+          "customFormat": "=LLLL d' at' t",
+          "outputFieldName": "August 10 at 1:00AM",
+          "options": {
+            "timezone": true
+          }
+        },
+        "id": "e030d02c-7a41-4ed1-a056-d5126e6ffd1d",
+        "name": "August 10 at 1:00AM",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -320,
+          688
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+          "format": "custom",
+          "customFormat": "=cccc',' LLLL d",
+          "outputFieldName": "Monday, August 10",
+          "options": {
+            "timezone": true
+          }
+        },
+        "id": "7bf903d4-9f70-4d73-9cb7-9173c3858894",
+        "name": "Monday, August 10",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -336,
+          848
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+          "format": "custom",
+          "customFormat": "=t",
+          "outputFieldName": "1:15PM",
+          "options": {
+            "timezone": true
+          }
+        },
+        "id": "e70b6438-cf09-4324-b4aa-fc7be1ba588e",
+        "name": "1:15PM",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -320,
+          1024
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "8c4b3979-6fe2-4bef-a457-59176db37405",
+                "leftValue": "={{ $json.body.data.properties[\"timezone.interpreters\"].rollup.array[0].checkbox }}",
+                "rightValue": "={{ $json.properties.Timezone.rollup.array[0] }}",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "2408e574-1d72-4ba4-bb8a-3934ad3230e0",
+        "name": "timezone.interpreter",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          272,
+          800
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text }}\n</p>\n</body>\n</html>",
+          "options": {}
+        },
+        "id": "f5e7db28-e050-4e3e-9b73-82e6060944f8",
+        "name": "ACTIVE.ZOOM.other",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1008,
+          1504
+        ],
+        "webhookId": "d31a0c78-f992-43d0-a4a7-c49b1adf0879",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content}} Municipal Court\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n    </p>\n</body>\n</html>\n\n",
+          "options": {}
+        },
+        "id": "99c6a6d4-58a6-4735-9da9-90d49c3bbe55",
+        "name": "ACTIVE.PST.ZOOM.other",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1104,
+          368
+        ],
+        "webhookId": "998de55f-abcc-469a-8f5a-b71bec23eb92",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION Phone {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "message": "={{ $json.body.data.properties.Description.rich_text[0].text.content }} \nLaw Firm: Stein, Lotzkar & Starr\n\nThe attorney will call you at {{ $json.body.data.properties['phone.interpeters'].rollup.array[0].phone_number }}. Please give us a call by {{ $('Merge').item.json['30.atty'] }} if you haven’t heard from the attorney, so we can check if you're still needed.\n\nThank you,\nItza Banos\nAdministrative Assistant\nINTERCOM Language Services\n(206) 979-6101\nrequests@intercom.cc\nwww.intercom.cc",
+          "options": {}
+        },
+        "id": "2f14872e-9888-40f5-a8f0-d2ff88f7fab9",
+        "name": "ACTIVE.SLS.phone",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1008,
+          1360
+        ],
+        "webhookId": "db34b959-bfcb-4ae3-a872-6e51adf2b7b6",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} ZOOM\n\nFederal Way Municipal Court\n\nPlease double-check that your name on ZOOM appears as: <strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n</p>\n</body>\n</html>",
+          "options": {}
+        },
+        "id": "f606a89b-e00b-487c-9a8c-05253fa749d9",
+        "name": "ACTIVE.ZOOM.fw",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1008,
+          1008
+        ],
+        "webhookId": "b09b06e0-ef41-44ae-bfb7-f8902ea68978",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION In Person {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} In Person<br><br>\n3-hour-minimum plus mileage\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n        .join(' ') \n      }}<br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n",
+          "options": {}
+        },
+        "id": "edc41e83-3ef6-47f2-bbec-d2e1507181a4",
+        "name": "ACTIVE.InPerson.other",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          992,
+          1760
+        ],
+        "webhookId": "49065bcb-ad07-4a01-96af-05619bb27993",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION In Person {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} In Person<br><br>\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n        .join(' ') \n      }} Municipal Court<br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n",
+          "options": {}
+        },
+        "id": "edfb9461-8813-4ac6-9e5f-2a68e4d268f0",
+        "name": "ACTIVE.Kent.InPerson",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1008,
+          832
+        ],
+        "webhookId": "a1e6bc9d-8453-47f3-804e-7987f7c36396",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "addToDate",
+          "magnitude": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+          "timeUnit": "minutes",
+          "duration": 15,
+          "outputFieldName": "15.attorney.calls",
+          "options": {}
+        },
+        "id": "49330dab-92b0-44ed-ae38-760ee900074e",
+        "name": "15.attorney.calls",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -496,
+          1200
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "8c4b3979-6fe2-4bef-a457-59176db37405",
+                "leftValue": "={{ $json.properties.Timezone.rollup.array[0].checkbox }}",
+                "rightValue": "={{ $json.properties.Timezone.rollup.array[0] }}",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "89051efe-f806-40b5-8820-ae7110d346ea",
+        "name": "TimeZone.SLS",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -368,
+          1728
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION Phone {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+          "message": "=Law Firm: Stein, Lotzkar & Starr\n{{ $json.body.data.properties.Description.rich_text[0].text.content }} \n\nThe attorney will call you at {{ $json.body.data.properties['phone.interpeters'].rollup.array[0].phone_number }}. Please give us a call by {{ $('Merge').item.json['30.atty'] }} PST if you haven’t heard from the attorney, so we can check if you're still needed.\n\n{{ $('Webhook').item.json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} is confirmed and __ phone number is {{ $('Webhook').item.json.body.data.properties['phone.interpeters'].rollup.array[0].phone_number }}.",
+          "options": {}
+        },
+        "id": "5e9b2fa6-a4cc-41b4-8fa0-5b119c8c334c",
+        "name": "ACTIVE.PST.SLS.phone",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1104,
+          208
+        ],
+        "webhookId": "e1c66762-d7b6-48d7-8866-02b0678a4217",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "f0827501-6e9c-4d4c-aa60-b4aa56c447d0",
+          "options": {}
+        },
+        "id": "c2ed53f1-448f-4130-b165-b35a14fc39c4",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -736,
+          800
+        ],
+        "webhookId": "f0827501-6e9c-4d4c-aa60-b4aa56c447d0"
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.body.data.properties['\"X\"formula.date.time'].formula.string }}",
+          "format": "custom",
+          "customFormat": "cccc',' LLLL d",
+          "outputFieldName": "Monday, August 10",
+          "options": {
+            "timezone": true
+          }
+        },
+        "id": "66ba7312-b419-48ac-b31a-7c49d17b5722",
+        "name": "Monday, August 11",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -144,
+          1424
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false,
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Phone"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9f478dcb-4ace-4049-ba75-bfa32349b15e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"in Person\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "In Person"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "600032fc-c168-4940-9f9a-5c981073f4fe",
+        "name": "modality.other",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          720,
+          1600
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      },
+                      "id": "d4c0eb0c-0dad-4d35-996f-010d8c4b14fd"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Phone"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "8214edb7-598c-4cda-9b35-b9fae6449aa8",
+        "name": "modality.sls",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          752,
+          1280
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"in Person\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "In Person"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "5d6da5df-9aad-4209-8ecc-ce40d2a054fd",
+        "name": "modality.fw",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          752,
+          1040
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Kent') }}",
+                      "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'kent'}}",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Kent"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "id": "d0d71019-083c-4e6d-bc21-6a00a101606f",
+                      "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Federal Way') }}",
+                      "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'federal way'}}",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Federal Way"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "id": "45a156db-385e-4f28-b309-774cde8a6968",
+                      "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Stein, Lotzkar & Starr') }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "SLS"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "d0b96802-bad6-4750-ab43-0a8f31d7914b",
+        "name": "courts1",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          432,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"ZOOM\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Phone"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "9c8321fb-b566-4b72-92f2-2f8681c61a63",
+        "name": "modality.other1",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          1472,
+          528
+        ],
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"ZOOM\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Phone"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "10f853a9-8b86-4dc2-963f-1fb11cc69645",
+        "name": "modality.SLS",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          768,
+          192
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json['15.attorney.calls'] }}",
+          "format": "custom",
+          "customFormat": "=t",
+          "outputFieldName": "15.addon",
+          "options": {
+            "timezone": true
+          }
+        },
+        "id": "2970a979-5136-4a13-8b36-0eeba5cb55cc",
+        "name": "15.addon",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -320,
+          1200
+        ],
+        "alwaysOutputData": false,
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "numberInputs": 6,
+          "options": {
+            "includeUnpaired": true
+          }
+        },
+        "id": "446c99ca-bf40-418c-96c5-f4ac826122d6",
+        "name": "Merge",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          -48,
+          768
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Kent') }}",
+                      "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'kent'}}",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Kent"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "id": "d0d71019-083c-4e6d-bc21-6a00a101606f",
+                      "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Federal Way') }}",
+                      "rightValue": "={{ $json[\"properties\"][\"Court\"][\"rich_text\"][0][\"plain_text\"], 'federal way'}}",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Federal Way"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "id": "45a156db-385e-4f28-b309-774cde8a6968",
+                      "leftValue": "={{ $json.body.data.properties.Court.rich_text[0].text.content.includes('Stein, Lotzkar & Starr') }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "SLS"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "37526061-941b-4750-ab10-14058fa636e9",
+        "name": "courts",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          384,
+          1088
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"in Person\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "In Person"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "9670b7b8-ec24-4920-856c-b947b770d16d",
+        "name": "modality.kent",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          752,
+          784
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\n<strong>IMPORTANT:\n<i>Kent Municipal Court requires you to check in and out using the chat.</i></strong>\n (1) AS SOON AS you log on, please chat Everyone on ZOOM (because this is the time the clerk will sign you in):<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter present</strong>\n (2) Before you log off, please chat Everyone on ZOOM:<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter finished</strong>\n (3) Please double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n</p>\n</body>\n</html>\n\n",
+          "options": {}
+        },
+        "id": "50930781-db2e-4302-b24a-59e090df39f3",
+        "name": "🟢kent.ZOOM",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1008,
+          688
+        ],
+        "webhookId": "51e64059-6daa-42b0-ab4a-883af0937752",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Zoom\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "ZOOM"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "9192349f-6fc4-4e10-8b0f-3dcddc24438e",
+                      "leftValue": "={{ $json.body.data.properties.Name.title[0].text.content.includes(\"Phone\") }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Phone"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "7d00d4c4-4d0c-4532-b46e-db5332e1509c",
+        "name": "modality.other.PST",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          784,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\n<strong>IMPORTANT:\n<i>Kent Municipal Court requires you to check in and out using the chat.</i></strong>\n (1) AS SOON AS you log on, please chat Everyone on ZOOM (because this is the time the clerk will sign you in):<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter present</strong>\n (2) Before you log off, please chat Everyone on ZOOM:<strong><br>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0] }} Interpreter finished</strong>\n (3) Please double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n</p>\n</body>\n</html>",
+          "options": {}
+        },
+        "id": "4250b4a7-42f2-490c-ac6b-c5696eb658fb",
+        "name": "🟢PST.kent.ZOOM",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          784,
+          -160
+        ],
+        "webhookId": "e9cff5d6-add7-4f96-8fc3-427c4c54b086",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} PST ZOOM<br><br>\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toSentenceCase())\n        .join(' ') \n      }} Municipal Court<br><br>\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong><br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}",
+          "options": {}
+        },
+        "id": "34efcaf6-728d-497f-b582-2f0ed7518941",
+        "name": "ACTIVE.ZOOM.other1",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1008,
+          1232
+        ],
+        "webhookId": "d31a0c78-f992-43d0-a4a7-c49b1adf0879",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\nFederal Way Municipal Court\n\nPlease double-check that your name on ZOOM appears as: <strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n    </p>\n  </body>\n</html>\n\n",
+          "options": {}
+        },
+        "id": "06a03ec0-9603-46ff-83e1-2bed9af8a225",
+        "name": "🟢ZOOM.fw.PST",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          768,
+          32
+        ],
+        "webhookId": "4b21c353-85bb-436a-8b50-222a0e4f7dcc",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION ZOOM {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }} PST",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PST ZOOM\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content}} Municipal Court\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n    </p>\n</body>\n</html>\n\n",
+          "options": {}
+        },
+        "id": "dee0ed84-bf4b-4036-bdab-846006ce2263",
+        "name": "ACTIVE.PST.ZOOM.other1",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1120,
+          544
+        ],
+        "webhookId": "998de55f-abcc-469a-8f5a-b71bec23eb92",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION In Person {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "={{ $json['Monday, August 10'] }}<br>\n{{ $json['1:15PM'] }} In Person<br><br>\n3-hour-minimum plus mileage\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content\n        .split(' ')\n        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n        .join(' ') \n      }}<br><br>\n   \n{{ $json.body.data.properties.Description.rich_text[0].plain_text.replace(/\\n/g, '<br>') }}\n\n",
+          "options": {}
+        },
+        "id": "bc059463-cd2c-4abc-9ee2-e39ad646b480",
+        "name": "ACTIVE.InPerson.other1",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1248,
+          1104
+        ],
+        "webhookId": "49065bcb-ad07-4a01-96af-05619bb27993",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "draft",
+          "subject": "={{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].text.content }} CONFIRMATION PHONE {{ $json['Monday, August 10'] }} at {{ $json['1:15PM'] }}",
+          "emailType": "html",
+          "message": "=<!DOCTYPE HTML>\n<html>\n  <body>\n    <p style=\"text-align: left; white-space: pre-wrap;\">\n{{ $json['Monday, August 10'] }}\n{{ $json['1:15PM'] }} PHONE\n\n{{ $json.body.data.properties.Court.rich_text[0].text.content }} Municipal Court\n\nPlease double-check that your name on ZOOM appears as:\n<strong>{{ $json.body.data.properties.Name.title[0].plain_text.split(' ')[0].toUpperCase() }} — {{ $json.body.data.properties['name.interpeters'].rollup.array[0].title[0].plain_text }}</strong>\n\n{{ $json.body.data.properties.Description.rich_text[0].plain_text }}\n</p>\n</body>\n</html>",
+          "options": {}
+        },
+        "id": "9ec1c0f1-c304-4ad0-8b8f-b658f93d268f",
+        "name": "ACTIVE.ZOOM.other2",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1200,
+          1616
+        ],
+        "webhookId": "d31a0c78-f992-43d0-a4a7-c49b1adf0879",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "August 10, 2024": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "August 10 at 1:00AM": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "1:15PM": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 3
+            }
+          ]
+        ]
+      },
+      "timezone.interpreter": {
+        "main": [
+          [
+            {
+              "node": "courts1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "courts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "15.attorney.calls": {
+        "main": [
+          [
+            {
+              "node": "15.addon",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "August 10, 2024",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "August 10 at 1:00AM",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "1:15PM",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "15.attorney.calls",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 4
+            },
+            {
+              "node": "Monday, August 10",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "modality.other": {
+        "main": [
+          [
+            {
+              "node": "ACTIVE.ZOOM.other",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ACTIVE.ZOOM.other2",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ACTIVE.InPerson.other",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "modality.sls": {
+        "main": [
+          [
+            {
+              "node": "ACTIVE.ZOOM.other1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ACTIVE.SLS.phone",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "modality.fw": {
+        "main": [
+          [
+            {
+              "node": "ACTIVE.ZOOM.fw",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ACTIVE.InPerson.other1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "courts1": {
+        "main": [
+          [
+            {
+              "node": "🟢PST.kent.ZOOM",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "🟢ZOOM.fw.PST",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "modality.SLS",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "modality.other.PST",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "modality.other1": {
+        "main": [
+          []
+        ]
+      },
+      "modality.SLS": {
+        "main": [
+          [],
+          [
+            {
+              "node": "ACTIVE.PST.SLS.phone",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Monday, August 10": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      },
+      "15.addon": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 5
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "timezone.interpreter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "courts": {
+        "main": [
+          [
+            {
+              "node": "modality.kent",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "modality.fw",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "modality.sls",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "modality.other",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "modality.kent": {
+        "main": [
+          [
+            {
+              "node": "🟢kent.ZOOM",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ACTIVE.Kent.InPerson",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "modality.other.PST": {
+        "main": [
+          [
+            {
+              "node": "ACTIVE.PST.ZOOM.other",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ACTIVE.PST.ZOOM.other1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2025-11-21T19:47:44.764Z",
+        "id": 4,
+        "workflowId": "5bvj8SaECWqr44RZ",
+        "versionId": "1c60e80e-d92c-43bd-a84d-d90001878574",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

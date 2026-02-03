@@ -1,6 +1,8 @@
 'use client';
 
+import { Building2, MapPin, Video, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { JobWithDetails } from '@/types/database.types';
 
 interface OrganizationLocationCardProps {
@@ -18,71 +20,80 @@ export function OrganizationLocationCard({ job, className }: OrganizationLocatio
   const parsedZoomCreds = zoomLogin ? parseZoomLogin(zoomLogin) : null;
 
   return (
-    <div className={cn('card', className)}>
-      <h3 className="heading-3 mb-6">
-        Organization & Location
-      </h3>
+    <Card className={className}>
+      <CardHeader>
+        <h3 className="text-lg font-semibold">Organization & Location</h3>
+      </CardHeader>
 
-      <div className="flex flex-col gap-6">
-        {/* 1. Organization */}
-        <div className="info-field">
-          <div className="caption">Organization</div>
-          <div className="info-field-value">{orgName}</div>
+      <CardContent className="space-y-6">
+        {/* Organization */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Building2 className="h-4 w-4" />
+            <span>Organization</span>
+          </div>
+          <div className="text-sm font-medium">{orgName}</div>
         </div>
 
-        {/* 2. Program */}
-        <div className="info-field">
-          <div className="caption">Program</div>
-          <div className="info-field-value">{programName || '—'}</div>
+        {/* Program */}
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground">Program</div>
+          <div className="text-sm">{programName || '—'}</div>
         </div>
 
-        {/* 3. Courtroom/Location Section */}
+        {/* Courtroom/Location Section */}
         {(courtroom || parsedZoomCreds || job.location?.zoom_link || job.location?.address) && (
-          <div className="info-field">
-            <div className="caption">Courtroom/Location</div>
-            <div className="flex flex-col gap-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              <span>Courtroom/Location</span>
+            </div>
+            <div className="space-y-2">
               {/* Courtroom name */}
               {courtroom && (
-                <div className="info-field-value mb-1">{courtroom}</div>
+                <div className="text-sm font-medium">{courtroom}</div>
               )}
 
               {/* Zoom credentials */}
               {job.modality === 'Zoom' && parsedZoomCreds && (
-                <>
+                <div className="space-y-1">
                   {parsedZoomCreds.meetingId && (
-                    <div className="body-small">Meeting ID: {parsedZoomCreds.meetingId}</div>
+                    <div className="text-sm text-muted-foreground">Meeting ID: {parsedZoomCreds.meetingId}</div>
                   )}
                   {parsedZoomCreds.password && (
-                    <div className="body-small">Password: {parsedZoomCreds.password}</div>
+                    <div className="text-sm text-muted-foreground">Password: {parsedZoomCreds.password}</div>
                   )}
-                </>
+                </div>
               )}
 
               {/* Zoom link */}
               {job.modality === 'Zoom' && job.location?.zoom_link && (
-                <>
-                  <div className="font-bold text-gray-900 text-sm mt-2">Zoom Link</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Video className="h-4 w-4" />
+                    <span>Zoom Link</span>
+                  </div>
                   <a
                     href={job.location.zoom_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-secondary hover:text-[#0A5D61] transition-colors break-all block text-sm"
+                    className="text-sm text-primary hover:underline break-all flex items-center gap-1"
                   >
                     {job.location.zoom_link}
+                    <ExternalLink className="h-3 w-3" />
                   </a>
-                </>
+                </div>
               )}
 
               {/* In-person address */}
               {job.modality === 'In-Person' && job.location?.address && (
-                <div className="text-gray-900 text-sm">{job.location.address}</div>
+                <div className="text-sm">{job.location.address}</div>
               )}
             </div>
           </div>
         )}
-
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -1,0 +1,767 @@
+{
+  "name": "gcal-to-interlingo-upsert-path2",
+  "description": "Path 2: Normalized lookup logic with UUID foreign keys",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Parse Google Calendar event and generate fingerprint\nfunction simpleHash(str) {\n  let hash = 5381;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) + hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash).toString(16).padStart(8, '0');\n}\n\nconst event = $input.first().json;\nconst summaryParts = (event.summary || '').split(' - ');\nconst languageString = summaryParts[0]?.trim() || 'Unknown';\nconst restOfSummary = summaryParts[1] || '';\n\n// Split languages on \"/\" to handle dual-language events\nconst languages = languageString.split('/').map(l => l.trim()).filter(l => l.length > 0);\n\nlet interpreter = null;\nlet modality = 'Remote';\nconst modalityMatch = restOfSummary.match(/(ZOOM|PHONE|IN PERSON)/i);\nif (modalityMatch) {\n  const matched = modalityMatch[1].toUpperCase();\n  if (matched === 'IN PERSON') modality = 'In-Person';\n  else if (matched === 'PHONE') modality = 'Phone';\n  else modality = 'Remote';\n  interpreter = restOfSummary.replace(modalityMatch[0], '').trim();\n} else {\n  interpreter = restOfSummary.trim();\n}\n\nconst orgAbbrev = (event.location || '')\n  .toUpperCase()\n  .replace('MUNICIPAL COURT', '')\n  .replace('DISTRICT COURT', '')\n  .replace('SUPERIOR COURT', '')\n  .trim();\n\nconst caseNotes = (event.description || '').trim();\nconst startTime = event.start?.dateTime || event.start?.date;\nconst endTime = event.end?.dateTime || event.end?.date;\n\n// Create one output per language\nreturn languages.map(language => {\n  const fingerprintRaw = `${startTime}|${orgAbbrev}|${language}`;\n  const fingerprintHash = simpleHash(fingerprintRaw);\n  \n  return {\n    json: {\n      gcal_event_id: event.id,\n      start_time: startTime,\n      end_time: endTime,\n      language: language,\n      interpreter: interpreter,\n      modality: modality,\n      org_abbreviation: orgAbbrev,\n      case_notes: caseNotes,\n      fingerprint_raw: fingerprintRaw,\n      fingerprint_hash: fingerprintHash\n    }\n  };\n});"
+      },
+      "name": "Parse Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, 304],
+      "id": "b829e31a-1d9e-43a1-bb53-40ee04235944"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "languages",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "name=eq.={{ $json.language.trim() }}"
+      },
+      "name": "Lookup Language ID",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [448, 304],
+      "id": "lookup-lang-001",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get parsed data from Parse Event node using proper n8n syntax\nconst allParsed = $('Parse Event').all();\nconst parsed = allParsed[$itemIndex].json;\n\n// Get language lookup result\nconst languageLookup = $input.all();\n\n// Check if we got results and extract the first one\nif (!languageLookup || languageLookup.length === 0) {\n  // Language not found - this is a critical error\n  return [{\n    json: {\n      error: true,\n      error_type: 'missing_language',\n      error_message: `Language \"${parsed.language}\" not found in languages table`,\n      gcal_event_id: parsed.gcal_event_id,\n      start_time: parsed.start_time,\n      language: parsed.language\n    }\n  }];\n}\n\n// Get first result (in case of duplicates, just use first one)\nconst firstResult = languageLookup[0].json;\n\n// Validate the result has an id\nif (!firstResult || !firstResult.id) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'invalid_language_result',\n      error_message: `Invalid result when looking up language \"${parsed.language}\"`,\n      gcal_event_id: parsed.gcal_event_id,\n      start_time: parsed.start_time,\n      language: parsed.language\n    }\n  }];\n}\n\nconst languageId = firstResult.id;\n\n// Pass through all parsed data plus language_id\nreturn [{\n  json: {\n    gcal_event_id: parsed.gcal_event_id,\n    start_time: parsed.start_time,\n    end_time: parsed.end_time,\n    language: parsed.language,\n    interpreter: parsed.interpreter,\n    modality: parsed.modality,\n    org_abbreviation: parsed.org_abbreviation,\n    case_notes: parsed.case_notes,\n    fingerprint_raw: parsed.fingerprint_raw,\n    fingerprint_hash: parsed.fingerprint_hash,\n    language_id: languageId,\n    error: false\n  }\n}];"
+      },
+      "name": "Process Language Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, 304],
+      "alwaysOutputData": true,
+      "id": "process-lang-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "error-check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Language Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [896, 304],
+      "id": "if-lang-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log missing language error\nconst data = $input.first().json;\nconsole.log('[ERROR] Missing Language:', data.error_message);\nconsole.log('[ERROR] Event data:', JSON.stringify(data, null, 2));\n\n// Return error data for potential manual review\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    error_type: data.error_type,\n    error_message: data.error_message,\n    language_attempted: data.language,\n    gcal_event_id: data.gcal_event_id,\n    start_time: data.start_time\n  }\n}];"
+      },
+      "name": "Log Missing Language",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 416],
+      "id": "log-lang-error-001"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "locations",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "organization_id=in.(SELECT id FROM organizations WHERE abbreviation=eq.={{ $json.org_abbreviation.trim() }})"
+      },
+      "name": "Lookup Organization/Location ID",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1120, 192],
+      "id": "lookup-org-001",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current item data (already has language_id)\nconst currentData = $input.first().json;\n\n// Get organization/location lookup result from Supabase node\nconst orgLookupResults = $('Lookup Organization/Location ID').all();\n\n// Check if we got results\nif (!orgLookupResults || orgLookupResults.length === 0) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'missing_organization',\n      error_message: `Organization \"${currentData.org_abbreviation}\" not found in organizations table`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation\n    }\n  }];\n}\n\nconst firstResult = orgLookupResults[0].json;\n\nif (!firstResult || !firstResult.id) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'invalid_organization_result',\n      error_message: `Invalid result when looking up organization \"${currentData.org_abbreviation}\"`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation\n    }\n  }];\n}\n\nconst locationId = firstResult.id;\n\n// Pass through all data plus location_id (explicit fields, no spread)\nreturn [{\n  json: {\n    gcal_event_id: currentData.gcal_event_id,\n    start_time: currentData.start_time,\n    end_time: currentData.end_time,\n    language: currentData.language,\n    interpreter: currentData.interpreter,\n    modality: currentData.modality,\n    org_abbreviation: currentData.org_abbreviation,\n    case_notes: currentData.case_notes,\n    fingerprint_raw: currentData.fingerprint_raw,\n    fingerprint_hash: currentData.fingerprint_hash,\n    language_id: currentData.language_id,\n    location_id: locationId,\n    error: false\n  }\n}];"
+      },
+      "name": "Process Org Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1344, 192],
+      "alwaysOutputData": true,
+      "id": "process-org-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "error-check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Organization Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1568, 192],
+      "id": "if-org-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log missing organization error\nconst data = $input.first().json;\nconsole.log('[ERROR] Missing Organization:', data.error_message);\nconsole.log('[ERROR] Event data:', JSON.stringify(data, null, 2));\n\n// Return error data for potential manual review\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    error_type: data.error_type,\n    error_message: data.error_message,\n    org_abbreviation_attempted: data.org_abbreviation,\n    gcal_event_id: data.gcal_event_id,\n    start_time: data.start_time\n  }\n}];"
+      },
+      "name": "Log Missing Organization",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1792, 304],
+      "id": "log-org-error-001"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "interpreter_aliases",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "alias=eq.={{ $json.interpreter ? $json.interpreter.trim() : '' }}"
+      },
+      "name": "Lookup Interpreter ID",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1792, 80],
+      "id": "lookup-interp-001",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current item data (already has language_id and location_id)\nconst currentData = $input.first().json;\n\n// Check if interpreter field is empty or null\nconst interpreterName = currentData.interpreter;\nif (!interpreterName || interpreterName.trim() === '') {\n  // No interpreter - this is acceptable (NULL)\n  return [{\n    json: {\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      end_time: currentData.end_time,\n      language: currentData.language,\n      interpreter: currentData.interpreter,\n      modality: currentData.modality,\n      org_abbreviation: currentData.org_abbreviation,\n      case_notes: currentData.case_notes,\n      fingerprint_raw: currentData.fingerprint_raw,\n      fingerprint_hash: currentData.fingerprint_hash,\n      language_id: currentData.language_id,\n      location_id: currentData.location_id,\n      interpreter_id: null\n    }\n  }];\n}\n\n// Get interpreter lookup results\nconst interpLookupResults = $('Lookup Interpreter ID').all();\n\n// Check if we got results\nif (!interpLookupResults || interpLookupResults.length === 0) {\n  // Interpreter not found - this is acceptable (NULL), but log it\n  console.log(`[WARN] Interpreter \"${interpreterName}\" not found in interpreter_aliases table - setting to NULL`);\n  return [{\n    json: {\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      end_time: currentData.end_time,\n      language: currentData.language,\n      interpreter: currentData.interpreter,\n      modality: currentData.modality,\n      org_abbreviation: currentData.org_abbreviation,\n      case_notes: currentData.case_notes,\n      fingerprint_raw: currentData.fingerprint_raw,\n      fingerprint_hash: currentData.fingerprint_hash,\n      language_id: currentData.language_id,\n      location_id: currentData.location_id,\n      interpreter_id: null,\n      interpreter_lookup_failed: true\n    }\n  }];\n}\n\nconst firstResult = interpLookupResults[0].json;\nconst interpreterId = firstResult && firstResult.interpreter_id ? firstResult.interpreter_id : null;\n\nif (!interpreterId) {\n  console.log(`[WARN] Interpreter \"${interpreterName}\" found but has no interpreter_id - setting to NULL`);\n}\n\n// Pass through all data plus interpreter_id\nreturn [{\n  json: {\n    gcal_event_id: currentData.gcal_event_id,\n    start_time: currentData.start_time,\n    end_time: currentData.end_time,\n    language: currentData.language,\n    interpreter: currentData.interpreter,\n    modality: currentData.modality,\n    org_abbreviation: currentData.org_abbreviation,\n    case_notes: currentData.case_notes,\n    fingerprint_raw: currentData.fingerprint_raw,\n    fingerprint_hash: currentData.fingerprint_hash,\n    language_id: currentData.language_id,\n    location_id: currentData.location_id,\n    interpreter_id: interpreterId,\n    interpreter_lookup_failed: !interpreterId\n  }\n}];"
+      },
+      "name": "Process Interpreter Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2016, 80],
+      "alwaysOutputData": true,
+      "id": "process-interp-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current data (has language_id, location_id, interpreter_id)\nconst data = $input.first().json;\nconst caseNotes = data.case_notes || '';\n\n// Pattern 1: Client name (typically first line, all caps, comma format)\n// \"BRAVO ALTAMIRANO , JILVER\"\nconst lines = caseNotes.split('\\n').filter(l => l.trim().length > 0);\nlet clientName = null;\nlet caseNumber = null;\nlet charges = null;\n\nif (lines.length > 0) {\n  // First line is usually client name (all caps with comma)\n  const firstLine = lines[0].trim();\n  if (firstLine.match(/^[A-Z\\s,]+$/)) {\n    clientName = firstLine;\n  }\n}\n\nif (lines.length > 1) {\n  // Second line is usually case number (alphanumeric)\n  const secondLine = lines[1].trim();\n  if (secondLine.match(/[A-Z0-9]/)) {\n    caseNumber = secondLine;\n  }\n}\n\nif (lines.length > 2) {\n  // Everything after is charges\n  charges = lines.slice(2).join('\\n').trim();\n}\n\n// Fallback: if parsing failed, store entire case_notes in charges\nif (!clientName && !caseNumber && caseNotes.length > 0) {\n  charges = caseNotes;\n  clientName = 'Unknown Client';\n}\n\n// Default meeting type\nconst meetingType = 'Court Hearing';\n\nreturn [{\n  json: {\n    ...data,\n    client_name: clientName || 'Unknown Client',\n    case_number: caseNumber,\n    charges: charges,\n    meeting_type: meetingType\n  }\n}];"
+      },
+      "name": "Parse Case Notes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2240, 80],
+      "alwaysOutputData": true,
+      "id": "parse-case-001"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "commitment_blocks",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "fingerprint_hash=eq.={{ $json.fingerprint_hash }}"
+      },
+      "name": "Query Existing Job",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2464, 80],
+      "id": "b4b1f5db-8cb3-4d48-9aea-1fafaef06961",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the parsed data for the CURRENT item (handles multiple languages)\nconst allParsed = $('Parse Case Notes').all();\nconst parsed = allParsed[$itemIndex].json;\n\n// Get query result - check what we actually received\nconst queryItems = $input.all();\nconst queryResult = queryItems.length > 0 ? queryItems[0].json : null;\nconst jobFound = queryResult && queryResult.id ? true : false;\n\nreturn [{\n  json: {\n    job_found: jobFound,\n    parsed: parsed,\n    existing: jobFound ? queryResult : null\n  }\n}];"
+      },
+      "name": "Check Job Exists",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2688, 80],
+      "alwaysOutputData": true,
+      "id": "550896f5-1da3-4d0e-9293-211940b34ea2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "exists-check",
+              "leftValue": "={{ $json.job_found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Job Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2912, 80],
+      "id": "12637bee-9d4d-4508-acf7-c1a6187b7080"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst incoming = data.parsed;\nconst existing = data.existing;\n\nconst fieldsToCompare = ['end_time', 'modality', 'interpreter_id'];\nconst changes = [];\nconst previousValues = {};\nconst newValues = {};\n\nfieldsToCompare.forEach(field => {\n  const incomingVal = incoming[field] || null;\n  const existingVal = existing[field] || null;\n  if (incomingVal !== existingVal) {\n    changes.push(field);\n    previousValues[field] = existingVal;\n    newValues[field] = incomingVal;\n  }\n});\n\nreturn [{\n  json: {\n    action: changes.length > 0 ? 'update' : 'no_changes',\n    existing_id: existing.id,\n    current_version: existing.version || 1,\n    new_version: (existing.version || 1) + 1,\n    changed_fields: changes,\n    previous_values: previousValues,\n    new_values: newValues,\n    incoming_data: incoming\n  }\n}];"
+      },
+      "name": "Compare Changes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3136, -32],
+      "id": "af14e792-15ac-4972-8c5f-6aa36eefaa4f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-changes",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "update",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Has Changes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3360, -32],
+      "id": "18414a8e-c064-4ebf-b9e8-3b77edae460d"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "commitment_blocks"
+      },
+      "name": "Update Existing Job",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [3584, -144],
+      "id": "c5e6e504-c360-4917-9044-dafea094805f",
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "job_version_history"
+      },
+      "name": "Log Version History",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [3808, -144],
+      "id": "96448909-1683-4fdf-847a-17a0974cbe8f",
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "commitment_blocks"
+      },
+      "name": "Touch Last Synced",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [3584, 80],
+      "id": "c76beb6c-3f8c-4dd7-9c71-60da702cf4ca",
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "tableId": "commitment_blocks",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "gcal_event_id",
+              "fieldValue": "={{ $json.parsed.gcal_event_id }}"
+            },
+            {
+              "fieldId": "interpreter_id",
+              "fieldValue": "={{ $json.parsed.interpreter_id }}"
+            },
+            {
+              "fieldId": "location_id",
+              "fieldValue": "={{ $json.parsed.location_id }}"
+            },
+            {
+              "fieldId": "modality",
+              "fieldValue": "={{ $json.parsed.modality }}"
+            },
+            {
+              "fieldId": "start_time",
+              "fieldValue": "={{ $json.parsed.start_time }}"
+            },
+            {
+              "fieldId": "end_time",
+              "fieldValue": "={{ $json.parsed.end_time }}"
+            },
+            {
+              "fieldId": "fingerprint_hash",
+              "fieldValue": "={{ $json.parsed.fingerprint_hash }}"
+            },
+            {
+              "fieldId": "version",
+              "fieldValue": "1"
+            }
+          ]
+        }
+      },
+      "name": "Create Commitment Block",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [3136, 192],
+      "id": "80247b00-414c-4378-8e59-9c9fbef52c4d",
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "tableId": "client_requests",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "commitment_block_id",
+              "fieldValue": "={{ $('Create Commitment Block').all()[$itemIndex].json.id }}"
+            },
+            {
+              "fieldId": "language_id",
+              "fieldValue": "={{ $json.parsed.language_id }}"
+            },
+            {
+              "fieldId": "client_name",
+              "fieldValue": "={{ $json.parsed.client_name }}"
+            },
+            {
+              "fieldId": "case_number",
+              "fieldValue": "={{ $json.parsed.case_number }}"
+            },
+            {
+              "fieldId": "charges",
+              "fieldValue": "={{ $json.parsed.charges }}"
+            },
+            {
+              "fieldId": "meeting_type",
+              "fieldValue": "={{ $json.parsed.meeting_type }}"
+            }
+          ]
+        }
+      },
+      "name": "Create Client Request",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [3360, 192],
+      "id": "create-client-req-001",
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "calendarId": {
+          "__rl": true,
+          "value": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "NOTION_INTERCOM"
+        },
+        "triggerOn": "eventCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTrigger",
+      "typeVersion": 1,
+      "position": [0, 288],
+      "id": "017d58c3-0d42-461b-b3e2-8e4d168331c3",
+      "name": "Google Calendar Trigger1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "iEbMmGly5eGaX2gX",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Parse Event": {
+      "main": [
+        [
+          {
+            "node": "Lookup Language ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Language ID": {
+      "main": [
+        [
+          {
+            "node": "Process Language Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Language Lookup": {
+      "main": [
+        [
+          {
+            "node": "Language Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Language Found?": {
+      "main": [
+        [
+          {
+            "node": "Lookup Organization/Location ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Missing Language",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Organization/Location ID": {
+      "main": [
+        [
+          {
+            "node": "Process Org Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Org Lookup": {
+      "main": [
+        [
+          {
+            "node": "Organization Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organization Found?": {
+      "main": [
+        [
+          {
+            "node": "Lookup Interpreter ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Missing Organization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Interpreter ID": {
+      "main": [
+        [
+          {
+            "node": "Process Interpreter Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Interpreter Lookup": {
+      "main": [
+        [
+          {
+            "node": "Parse Case Notes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Case Notes": {
+      "main": [
+        [
+          {
+            "node": "Query Existing Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Existing Job": {
+      "main": [
+        [
+          {
+            "node": "Check Job Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Job Exists": {
+      "main": [
+        [
+          {
+            "node": "Job Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Exists?": {
+      "main": [
+        [
+          {
+            "node": "Compare Changes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Commitment Block",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Changes": {
+      "main": [
+        [
+          {
+            "node": "Has Changes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Changes?": {
+      "main": [
+        [
+          {
+            "node": "Update Existing Job",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Touch Last Synced",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Existing Job": {
+      "main": [
+        [
+          {
+            "node": "Log Version History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Commitment Block": {
+      "main": [
+        [
+          {
+            "node": "Create Client Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Parse Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/Los_Angeles",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Google Calendar Trigger": {
+      "lastTimeChecked": "2025-12-30T02:05:49Z"
+    },
+    "node:Google Calendar Trigger1": {
+      "lastTimeChecked": "2026-01-25T01:37:52Z"
+    }
+  },
+  "pinData": {
+    "Google Calendar Trigger1": [
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3421581128770000\"",
+          "id": "_8go3ig9g6os30b9o8l0jeb9k8gsk4b9o70p30ba26l2k2d226h2j6d9h8o",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzhnbzNpZzlnNm9zMzBiOW84bDBqZWI5azhnc2s0YjlvNzBwMzBiYTI2bDJrMmQyMjZoMmo2ZDloOG8gMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2024-03-18T19:36:04.000Z",
+          "updated": "2024-03-18T19:36:04.385Z",
+          "summary": "Spanish/Mam - Ma M ZOOM",
+          "description": "NO: Ma F\n\nMeeting ID: 491 553 1189\nPassword: 61045832\n\nBRAVO ALTAMIRANO , JILVER\n4A0045471 ENP CTPTR\nDUI\n4A0045474 ENP IT\nOP MOT VEH W/OUT INSURANCE\nand FL RENEW EXPIRED REG > 2 MTHS",
+          "location": "ENUMCLAW",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "Intercom",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2024-03-19T13:15:55-07:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2024-03-19T15:15:55-07:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "D09A0680-8EA7-4D9B-8820-B5EA4B4E351F",
+          "sequence": 1,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      }
+    ]
+  },
+  "tags": []
+}

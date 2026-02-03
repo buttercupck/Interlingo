@@ -1,0 +1,1778 @@
+{
+  "updatedAt": "2026-02-02T17:37:18.872Z",
+  "createdAt": "2026-02-01T06:00:56.847Z",
+  "id": "4L6viZKwijnDNxuj",
+  "name": "reminder.renderer.webhook",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/15 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+          "mode": "id"
+        },
+        "options": {
+          "timeMin": "={{ $now.plus({minutes: 30}).toISO() }}",
+          "timeMax": "={{ $now.plus({days: 2}).toISO() }}",
+          "singleEvents": true
+        }
+      },
+      "id": "gcal-fetch",
+      "name": "Get Calendar Events",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "iEbMmGly5eGaX2gX",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": " // Parse GCal event and extract interpreter/org names\n  const items = [];\n\n  for (const item of $input.all()) {\n    const event = item.json;\n\n    // Extract interpreter name from summary (e.g., \"Vietnamese - Mychi PHONE\")\n    const summaryMatch =\n  event.summary?.match(/^([^-]+)\\s*-\\s*(.+?)\\s+(PHONE|ZOOM|IN PERSON)$/i);\n\n    if (!summaryMatch) {\n      continue; // Skip events that don't match reminder format\n    }\n\n    const language = summaryMatch[1].trim();\n    const interpreterName = summaryMatch[2].trim();\n    const modality = summaryMatch[3].toUpperCase();\n\n    // Extract org abbreviation from location (e.g., \"SLS KIRKLAND\")\n    const locationParts = event.location?.split(' ') || [];\n    const orgAbbreviation = locationParts[0];\n\n    items.push({\n      json: {\n        gcal_event_id: event.id,\n        gcal_event: event,\n        interpreter_name: interpreterName,\n        org_abbreviation: orgAbbreviation,\n        language,\n        modality\n      }\n    });\n  }\n\n  return items;"
+      },
+      "id": "parse-event",
+      "name": "Parse Event Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "organizations",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "abbreviation",
+              "keyValue": "={{ $json.org_abbreviation }}"
+            }
+          ]
+        }
+      },
+      "id": "query-org",
+      "name": "Get Organization",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -96
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "interpreter_aliases",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "alias",
+              "keyValue": "={{ $json.interpreter_name }}"
+            }
+          ]
+        }
+      },
+      "id": "query-alias",
+      "name": "Get Interpreter Alias",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        608,
+        112
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 4,
+        "options": {}
+      },
+      "id": "merge-data",
+      "name": "Merge Org + Alias",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n  // Build payload for renderer - GCal event format\n  const items = [];\n\n  for (const item of $input.all()) {\n    const gcalEvent = item.json.gcal_event;\n\n    // Renderer expects: summary, location, start, end, description\n    items.push({\n      json: {\n        summary: gcalEvent.summary,\n        location: gcalEvent.location,\n        start: gcalEvent.start,\n        end: gcalEvent.end,\n        description: gcalEvent.description || ''\n      }\n    });\n  }\n\n  return items;"
+      },
+      "id": "build-payload",
+      "name": "Build Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:3001/render",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "webhook-post",
+      "name": "POST to Renderer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.grade }}",
+              "operation": "equals",
+              "value2": "A"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-grade",
+      "name": "Grade A?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "ctrl.cmd.ai@gmail.com",
+        "subject": "={{ $json.email.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.email.body }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1600,
+        -96
+      ],
+      "webhookId": "708bb1fe-689d-46b0-81c3-9d5a0d166d81",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NJMKlOr2YXdVwJ0y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Validation Failed\n\nEmail did not achieve Grade A.\nCheck validation report for issues.",
+        "color": 6
+      },
+      "id": "sticky-note-error",
+      "name": "Validation Failed Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "interpreters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.interpreter_id }}"
+            }
+          ]
+        }
+      },
+      "id": "query-interpreter",
+      "name": "Get Interpreter",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        864,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Get Calendar Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendar Events": {
+      "main": [
+        [
+          {
+            "node": "Parse Event Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Event Data": {
+      "main": [
+        [
+          {
+            "node": "Get Organization",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Interpreter Alias",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Org + Alias",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Get Organization": {
+      "main": [
+        [
+          {
+            "node": "Merge Org + Alias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Interpreter Alias": {
+      "main": [
+        [
+          {
+            "node": "Merge Org + Alias",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Get Interpreter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Org + Alias": {
+      "main": [
+        [
+          {
+            "node": "Build Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Payload": {
+      "main": [
+        [
+          {
+            "node": "POST to Renderer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to Renderer": {
+      "main": [
+        [
+          {
+            "node": "Grade A?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grade A?": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Interpreter": {
+      "main": [
+        [
+          {
+            "node": "Merge Org + Alias",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed"
+  },
+  "staticData": {
+    "node:Every 15 Minutes": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {
+    "Get Calendar Events": [
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3529770115208350\"",
+          "id": "_6cr3icq38osk6b9n6t344b9k84sjaba174sj2b9k6oojagho6d246hi474",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZjcjNpY3EzOG9zazZiOW42dDM0NGI5azg0c2phYmExNzRzajJiOWs2b29qYWdobzZkMjQ2aGk0NzQgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2025-12-04T21:50:57.000Z",
+          "updated": "2025-12-04T21:50:57.604Z",
+          "summary": "Mandarin - ? ZOOM ",
+          "description": "Courtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nLEI, SHANHUI\n3A0113497 - TESTIMONIAL MOTION\n1\tDUI\nAtty: Duncan",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T13:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T15:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "3693CF9C-77FB-4A95-A991-4615B83DCFD9",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3534442078726430\"",
+          "id": "_61244cq28cpk2ba488r30b9k6co48b9o8l0kab9p8koj8cq56cok8c9l88",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzYxMjQ0Y3EyOGNwazJiYTQ4OHIzMGI5azZjbzQ4YjlvOGwwa2FiOXA4a29qOGNxNTZjb2s4YzlsODggMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2025-12-31T22:43:59.000Z",
+          "updated": "2025-12-31T22:43:59.363Z",
+          "summary": "Punjabi - ? ZOOM",
+          "description": "PUYALLUP\nMeeting ID:  293 869 0574\nPasscode:  199781\n\nSINGH, JATINDER\n5A0880612 - PTR\n1\tPHYSICAL CONTROL",
+          "location": "PUYALLUP",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:15:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:15:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "0DB3BC3A-DB60-430D-8EAE-9E143E31D15B",
+          "sequence": 1,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3535792337065150\"",
+          "id": "_8d0jah9p69332ba66kp32b9k68ok6ba16d1j6b9n6os4achl710k4d9i70",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzhkMGphaDlwNjkzMzJiYTY2a3AzMmI5azY4b2s2YmExNmQxajZiOW42b3M0YWNobDcxMGs0ZDlpNzAgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-08T18:16:08.000Z",
+          "updated": "2026-01-08T18:16:08.532Z",
+          "summary": "Mandarin - ? ZOOM 2 interps needed for testimony ",
+          "description": "Courtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nLEI, SHANHUI\n3A0113497 - MOTION\n1\tDUI\nAtty: Duncan",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T13:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T15:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "CA5E92F1-F521-421C-A3C3-768E258AB528",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3536482063576350\"",
+          "id": "_6t13cdpg68p3gb9i64pjgb9k8p148ba26gpk2b9l8kpjahhn6oq3ahhg8c",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZ0MTNjZHBnNjhwM2diOWk2NHBqZ2I5azhwMTQ4YmEyNmdwazJiOWw4a3BqYWhobjZvcTNhaGhnOGMgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-12T18:03:51.000Z",
+          "updated": "2026-01-12T18:03:51.788Z",
+          "summary": "Cantonese - ? ZOOM",
+          "description": "Courtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nGUAN, LI HUI\n1A0760505 - BENCH WARRANT QUASH \n1\tPHYSICAL CONTROL\n2\tOPER VEH W/OUT IGNITION INTERLOCK\n3\tDWLS 3RD DEGREE",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "7B670228-2138-4FBD-B43A-5E35F7645F0C",
+          "sequence": 1,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3537017015508158\"",
+          "id": "_64p34dho74r34ba468ojgb9k60qj4ba26gqjgb9g8goj4gq684r3ighg64",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzY0cDM0ZGhvNzRyMzRiYTQ2OG9qZ2I5azYwcWo0YmEyNmdxamdiOWc4Z29qNGdxNjg0cjNpZ2hnNjQgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-15T20:21:47.000Z",
+          "updated": "2026-01-15T20:21:47.754Z",
+          "summary": "Cantonese - PHONE",
+          "description": "Language:  Cantonese \nDate:  2/5\nTime:  1pm\nClient:  LIN, XINQUAN \nCause Number:  (3A284740-BEDBVUCNKCX)\nAttorney:  Callan Oki\nCity:  Bellevue",
+          "location": "SLS BELLEVUE",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T13:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T15:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "12268962-D218-4052-B458-0D12CFA69B01",
+          "sequence": 1,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539429900409342\"",
+          "id": "_74r3chhm6gs3cb9k74rj4b9k61334ba26523iba16ss34dpg851k4d2684",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzc0cjNjaGhtNmdzM2NiOWs3NHJqNGI5azYxMzM0YmEyNjUyM2liYTE2c3MzNGRwZzg1MWs0ZDI2ODQgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-29T19:29:09.000Z",
+          "updated": "2026-01-29T19:29:10.204Z",
+          "summary": "Spanish - Gaby ZOOM",
+          "description": "Courtroom 2\nMeeting ID: 454 390 5186\nPassword: Renton\n\nAGUILAR CASTILLO, ALBERTO\n6a0028587 - ARR\n6A0028586 - CON\n\nROSALES PEREZ, FRANCISCO JAVIER\n5A0319261 - BW QUASH\n1\tDUI\n\nVASQUEZ VICENTE , YORDY\n4A0505818 - BWQ\n1\tDUI\n2\tRECKLESS DRIVING\n\nVAZQUEZ RAMOS , DARIO\n6A0128232 - ARR\t\n1\tDWLS 3RD DEGREE\n6A0128233 - CON\n2\tOP MOT VEH W/OUT INSURANCE",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "966F6486-4972-40F2-B1D9-A78270ACB4FA",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539429901786750\"",
+          "id": "_6kqk8chn84rk6ba16kqj8b9k8cs44b9p610j2b9h8kq4acpn88qkcg9n8o",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZrcWs4Y2huODRyazZiYTE2a3FqOGI5azhjczQ0YjlwNjEwajJiOWg4a3E0YWNwbjg4cWtjZzluOG8gMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-29T19:29:10.000Z",
+          "updated": "2026-01-29T19:29:10.893Z",
+          "summary": "Spanish - Stacey ZOOM ",
+          "description": "NO: Darren, Gaby\n\nCourtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nDEL ANGEL GONZALEZ, RAFAEL\nXZ0393396 - REV\n1\tPHYSICAL CONTROL",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "55D27A7C-A554-4C8B-90A1-1E4E37B5FA7F",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539429903326782\"",
+          "id": "_84p3cea360qjab9j8gq3cb9k8d1j0ba16orj6b9p6cq44chk8l244e9o6s",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzg0cDNjZWEzNjBxamFiOWo4Z3EzY2I5azhkMWowYmExNm9yajZiOXA2Y3E0NGNoazhsMjQ0ZTlvNnMgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-29T19:29:11.000Z",
+          "updated": "2026-01-29T19:29:11.663Z",
+          "summary": "NEED LINK Spanish - Sauvryn ZOOM",
+          "description": "NO: Gaby, Inés, Laura H\n\n10:00 a.m. - Mc Donwards Lizcano Ramirez 5A0686901 (Tukwila) - Zoom - Unassigned - Initial Contact Meeting",
+          "location": "KIRSHENBAUM - TUKWILA",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "A269C055-3D46-4CC0-A673-934B24EDB987",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539429904837854\"",
+          "id": "_6kpk6g9o68qj8b9g8kq3eb9k8kpjeb9p65242b9k68sj0d1l8kojihhj60",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZrcGs2ZzlvNjhxajhiOWc4a3EzZWI5azhrcGplYjlwNjUyNDJiOWs2OHNqMGQxbDhrb2ppaGhqNjAgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-29T19:29:12.000Z",
+          "updated": "2026-01-29T19:29:12.418Z",
+          "summary": "Spanish - Gaby ZOOM",
+          "description": "Kent Courtroom 4 log on for attorney-client meetings with Stewart, MacNichols & Harmell and weekend arrestees\nMeeting ID: 969 2293 5417\nPassword: 98032",
+          "location": "KENT",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "53CA8254-0E47-4E37-91DA-429045E19F30",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539429906095934\"",
+          "id": "_71130cpp650jab9n6sqkcb9k70sj4ba270rkaba474r3gcho8cp36h226k",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzcxMTMwY3BwNjUwamFiOW42c3FrY2I5azcwc2o0YmEyNzBya2FiYTQ3NHIzZ2NobzhjcDM2aDIyNmsgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-29T19:29:12.000Z",
+          "updated": "2026-01-29T19:29:13.047Z",
+          "summary": "Spanish - Laura H PHONE",
+          "description": "Call Kirshenbaum & Goss at (253) 852-7979\n\n10:00 a.m. - Bartolo Osorio Ramirez 6A0007238 (Burien) - Phone  - Unassigned - Initial Contact Meeting",
+          "location": "KIRSHENBAUM - BURIEN",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "8B0391A5-775F-4892-B87E-D96828C23DB5",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539429907343390\"",
+          "id": "_8p1jahi1752k4b9l6kq34b9k6h1k2ba26t34ab9k61346c22751j0d9o6o",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzhwMWphaGkxNzUyazRiOWw2a3EzNGI5azZoMWsyYmEyNnQzNGFiOWs2MTM0NmMyMjc1MWowZDlvNm8gMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-29T19:29:13.000Z",
+          "updated": "2026-01-29T19:29:13.671Z",
+          "summary": "Spanish - Stacey PHONE",
+          "description": "NO: Inés, Laura H\n\nCall Kirshenbaum & Goss at (253) 852-7979\n\n10:30 a.m. - Vardomiano Ramos 6A0011131 (Tukwila) - Phone - Unassigned - Initial Contact Meeting",
+          "location": "KIRSHENBAUM - TUKWILA",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "FC5FA9EB-5542-44CA-B7FE-40FC0B9C0586",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807875305886\"",
+          "id": "_6l2kah9k8h346b9i6gs42b9k6t144b9o8oojcb9l8kr38hhk6oo3gh1i68",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZsMmthaDlrOGgzNDZiOWk2Z3M0MmI5azZ0MTQ0YjlvOG9vamNiOWw4a3IzOGhoazZvbzNnaDFpNjggMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:58:57.000Z",
+          "updated": "2026-01-31T23:58:57.652Z",
+          "summary": "Spanish - Gaby ZOOM",
+          "description": "Courtroom 2\nMeeting ID: 454 390 5186\nPassword: Renton\n\nAGUILAR CASTILLO, ALBERTO\n6a0028587 - ARR\n6A0028586 - CON\n\nROSALES PEREZ, FRANCISCO JAVIER\n5A0319261 - BW QUASH\n1\tDUI\n\nVASQUEZ VICENTE , YORDY\n4A0505818 - BWQ\n1\tDUI\n2\tRECKLESS DRIVING\n\nVAZQUEZ RAMOS , DARIO\n6A0128232 - ARR\t\n1\tDWLS 3RD DEGREE\n6A0128233 - CON\n2\tOP MOT VEH W/OUT INSURANCE",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "5EEE4DFC-248A-47BB-8F16-5E64F4608D22",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807876561726\"",
+          "id": "_6p0j0d9g6t0j8ba58h33eb9k8oq32ba274oj2ba488o4aci58h2k2dpk6k",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZwMGowZDlnNnQwajhiYTU4aDMzZWI5azhvcTMyYmEyNzRvajJiYTQ4OG80YWNpNThoMmsyZHBrNmsgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:58:58.000Z",
+          "updated": "2026-01-31T23:58:58.280Z",
+          "summary": "Spanish - Stacey ZOOM ",
+          "description": "NO: Darren, Gaby\n\nCourtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nDEL ANGEL GONZALEZ, RAFAEL\nXZ0393396 - REV\n1\tPHYSICAL CONTROL",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "6A0507A4-EDF7-4F41-B911-DB0E2EDEA745",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807877918494\"",
+          "id": "_8p2k6g9h8h0k8b9j6d344b9k6so3gb9o6t334b9g6l2j6ea48h1jed1j8g",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzhwMms2ZzloOGgwazhiOWo2ZDM0NGI5azZzbzNnYjlvNnQzMzRiOWc2bDJqNmVhNDhoMWplZDFqOGcgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:58:58.000Z",
+          "updated": "2026-01-31T23:58:58.959Z",
+          "summary": "Tzeltal - Luz ZOOM BILL $150, PAY $85",
+          "description": "Zoom Meeting https://us02web.zoom.us/j/7185731765?omn=88397869884\n\nMeeting ID: 718 573 1765\n\nPedro Diaz Vazquez - 6A0026940\n\ncargos por DUI (conducir en estado de embriaguez)\n\ny DWLS 3er grado (conducir mientras su licencia estaba suspendida en 3er grado)\n\naudiencia previa al juicio\n\nsu abogada se llama Norma Deloza\n\n ",
+          "location": "GRANGER MUNI",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T09:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T11:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "FECA1DAD-33FB-4708-87F2-05E39DDC743D",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807879225598\"",
+          "id": "_8gojcdi484qj0b9h6p23ab9k8kpj8ba264rjcb9l70p3edpn751k4gpo6s",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzhnb2pjZGk0ODRxajBiOWg2cDIzYWI5azhrcGo4YmEyNjRyamNiOWw3MHAzZWRwbjc1MWs0Z3BvNnMgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:58:59.000Z",
+          "updated": "2026-01-31T23:58:59.612Z",
+          "summary": "Spanish - Gaby ZOOM",
+          "description": "Kent Courtroom 4 log on for attorney-client meetings with Stewart, MacNichols & Harmell and weekend arrestees\nMeeting ID: 969 2293 5417\nPassword: 98032",
+          "location": "KENT",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "D166DA50-16D5-4E34-B176-5827779CBC87",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807880570110\"",
+          "id": "_75236e9m6or46ba569242b9k70ojaba170rj6b9g84s30d9o612k6gq564",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzc1MjM2ZTltNm9yNDZiYTU2OTI0MmI5azcwb2phYmExNzByajZiOWc4NHMzMGQ5bzYxMms2Z3E1NjQgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:58:59.000Z",
+          "updated": "2026-01-31T23:59:00.285Z",
+          "summary": "Spanish - Laura H PHONE",
+          "description": "Call Kirshenbaum & Goss at (253) 852-7979\n\n10:00 a.m. - Bartolo Osorio Ramirez 6A0007238 (Burien) - Phone  - Unassigned - Initial Contact Meeting",
+          "location": "KIRSHENBAUM - BURIEN",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "9D39666C-E2DA-4815-A873-0A80580ECCE1",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807881896222\"",
+          "id": "_70pjedq66t332b9i6go36b9k8924cba271242b9j6sp3ihi6650kcca388",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzcwcGplZHE2NnQzMzJiOWk2Z28zNmI5azg5MjRjYmEyNzEyNDJiOWo2c3AzaWhpNjY1MGtjY2EzODggMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:59:00.000Z",
+          "updated": "2026-01-31T23:59:00.948Z",
+          "summary": "Spanish - Sauvryn ZOOM",
+          "description": "NO: Gaby, Inés, Laura H\n\n10:00 a.m. - Mc Donwards Lizcano Ramirez 5A0686901 (Tukwila) - Zoom - Attorney Maddi - Initial Contact Meeting\n\nhttps://us06web.zoom.us/j/6258716745?pwd=fS2ivlA6UEtab3MkhvUNaYMKbgsZld.1&omn=83818985442",
+          "location": "KIRSHENBAUM - TUKWILA",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "8377F7F1-2403-4BDF-B8DA-3729FF1AF1CB",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539807889984222\"",
+          "id": "_6123ge2488sjcba670rj8b9k6or38ba1612j6b9g6d330h9m8d2jee1n6c",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzYxMjNnZTI0ODhzamNiYTY3MHJqOGI5azZvcjM4YmExNjEyajZiOWc2ZDMzMGg5bThkMmplZTFuNmMgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-01-31T23:59:04.000Z",
+          "updated": "2026-01-31T23:59:04.992Z",
+          "summary": "Spanish - Stacey PHONE",
+          "description": "NO: Inés, Laura H\n\nCall Kirshenbaum & Goss at (253) 852-7979\n\n10:30 a.m. - Vardomiano Ramos 6A0011131 (Tukwila) - Phone - atty Bobby - Initial Contact Meeting",
+          "location": "KIRSHENBAUM - TUKWILA",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "0D88DB96-F874-4664-A0E3-03F0E6CE7873",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539817728974686\"",
+          "id": "_84skaghg8d142b9k8d24cb9k8opj4ba26so38ba164q48e1n8d148gi564",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzg0c2thZ2hnOGQxNDJiOWs4ZDI0Y2I5azhvcGo0YmEyNnNvMzhiYTE2NHE0OGUxbjhkMTQ4Z2k1NjQgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T01:21:04.000Z",
+          "updated": "2026-02-01T01:21:04.487Z",
+          "summary": "Cantonese - Lawrence ZOOM",
+          "description": "No: Doreen \n\nCourtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nGUAN, LI HUI\n1A0760505 - BENCH WARRANT QUASH \n1\tPHYSICAL CONTROL\n2\tOPER VEH W/OUT IGNITION INTERLOCK\n3\tDWLS 3RD DEGREE",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "A9EB0CBA-4CDF-4F32-B704-A14D87CBDBE1",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539817730396766\"",
+          "id": "_6osj0ha488q3iba584q3gb9k75332ba161248ba36h2j4gi26sr38cq268",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZvc2owaGE0ODhxM2liYTU4NHEzZ2I5azc1MzMyYmExNjEyNDhiYTM2aDJqNGdpMjZzcjM4Y3EyNjggMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T01:21:04.000Z",
+          "updated": "2026-02-01T01:21:05.198Z",
+          "summary": "Uzbek - Umid ZOOM BILL $140 PAY $125",
+          "description": "Meeting ID: 548 666 9652\nNo password\n\nBOBONAZAROV, UMIDJON\n5A0869556 STP IT - Contested Hearing\n1\tNO INSURANCE\n\n",
+          "location": "SEATAC",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "690EDB49-EA48-49F1-A0DD-C4E2BB7643B2",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539817731994750\"",
+          "id": "_6h13ih9m6osj6b9k68rjgb9k70s46ba16p1jcb9o70pjee1h70s3ge1l6g",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZoMTNpaDltNm9zajZiOWs2OHJqZ2I5azcwczQ2YmExNnAxamNiOW83MHBqZWUxaDcwczNnZTFsNmcgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T01:21:05.000Z",
+          "updated": "2026-02-01T01:21:05.997Z",
+          "summary": "Arabic - Hebba ZOOM",
+          "description": "No: Diana\n\nArabic, Egyptian\n\nMeeting ID: 442 185 0617 \nPasscode: 079581\n\nZWAINATI, ATIR M\n5A0746287 - PTR\n1\tDWLS 3RD DEGREE",
+          "location": "BONNEY LAKE",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "4B9E6693-4278-488C-A6C6-883781888854",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539817737783486\"",
+          "id": "_6gp36ga46h34ab9k6gskab9k60sjcba289332b9o891k6hi36kr48ghp6o",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzZncDM2Z2E0NmgzNGFiOWs2Z3NrYWI5azYwc2pjYmEyODkzMzJiOW84OTFrNmhpMzZrcjQ4Z2hwNm8gMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T01:21:08.000Z",
+          "updated": "2026-02-01T01:21:08.891Z",
+          "summary": "Punjabi - Kalpna ZOOM",
+          "description": "Meeting ID:  293 869 0574\nPasscode:  199781\n\nSINGH, JATINDER\n5A0880612 - PTR\n1\tPHYSICAL CONTROL",
+          "location": "PUYALLUP",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T10:15:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T12:15:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "423AD4FE-449E-4096-BBF1-8BCCFC56DB96",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539817739285374\"",
+          "id": "_70rj8hhl6oq42ba38p0k4b9k7533aba268sk4ba36kpj8h2368pjac9k8c",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzcwcmo4aGhsNm9xNDJiYTM4cDBrNGI5azc1MzNhYmEyNjhzazRiYTM2a3BqOGgyMzY4cGphYzlrOGMgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T01:21:09.000Z",
+          "updated": "2026-02-01T01:21:09.642Z",
+          "summary": "Mandarin - Edward ZOOM ",
+          "description": "Courtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nLEI, SHANHUI\n3A0113497 - TESTIMONIAL MOTION\n1\tDUI\nAtty: Duncan",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T13:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T15:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "874F564A-CFAB-49F5-B29B-C534DC23514C",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539817740718270\"",
+          "id": "_750k8dq660rkcba384q4cb9k85146ba18kr46ba26gp34chp7133aea368",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=Xzc1MGs4ZHE2NjBya2NiYTM4NHE0Y2I5azg1MTQ2YmExOGtyNDZiYTI2Z3AzNGNocDcxMzNhZWEzNjggMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T01:21:10.000Z",
+          "updated": "2026-02-01T01:21:10.359Z",
+          "summary": "Mandarin - Ginger ZOOM 2 interps needed for testimony ",
+          "description": "Courtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nLEI, SHANHUI\n3A0113497 - MOTION\n1\tDUI\nAtty: Duncan",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T13:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T15:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "9AD7F07F-CA4F-4ABC-AE6C-B422298F59C2",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      },
+      {
+        "json": {
+          "kind": "calendar#event",
+          "etag": "\"3539852381401246\"",
+          "id": "_8d13ae1h6grk4b9m71134b9k6d2k4ba288sj6ba674qk2da28d236d1k8c",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=XzhkMTNhZTFoNmdyazRiOW03MTEzNGI5azZkMms0YmEyODhzajZiYTY3NHFrMmRhMjhkMjM2ZDFrOGMgMGRjMWNjYWRhYjk5N2Y0MWM3YWY4NzE5OGFlMWEwYWM2MWE2MzVmNGQ5OWIzYjliNDlmNWM1Nzk0N2NkMzAxYkBn",
+          "created": "2026-02-01T06:09:50.000Z",
+          "updated": "2026-02-01T06:09:50.700Z",
+          "summary": "Cantonese - Lawrence ZOOM",
+          "description": "No: Doreen \n\nCourtroom 1\nMeeting ID: 533 352 1935\nPassword: Renton\n\nGUAN, LI HUI\n1A0760505 - BENCH WARRANT QUASH \n1\tPHYSICAL CONTROL\n2\tOPER VEH W/OUT IGNITION INTERLOCK\n3\tDWLS 3RD DEGREE",
+          "location": "RENTON",
+          "creator": {
+            "email": "itzabanos@gmail.com"
+          },
+          "organizer": {
+            "email": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "displayName": "NOTION_INTERCOM",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2026-02-02T08:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2026-02-02T10:30:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "CB58147B-68B2-43EB-BB93-F95A5BCD344C",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          },
+          "eventType": "default"
+        }
+      }
+    ]
+  },
+  "versionId": "d623a31b-dbc6-4dd7-aaaf-a4e87ad8622a",
+  "activeVersionId": "1de3e5b9-9b5b-4a25-b190-9339e1670ced",
+  "versionCounter": 72,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-01T06:00:56.851Z",
+      "createdAt": "2026-02-01T06:00:56.851Z",
+      "role": "workflow:owner",
+      "workflowId": "4L6viZKwijnDNxuj",
+      "projectId": "9U5krb0YOaZEdeu8",
+      "project": {
+        "updatedAt": "2024-08-14T01:53:06.523Z",
+        "createdAt": "2024-08-14T01:53:06.523Z",
+        "id": "9U5krb0YOaZEdeu8",
+        "name": "Itza Intercom <itzabanos@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "7d850e85-d433-42a4-af6e-fac2c6df167b",
+        "projectRelations": [
+          {
+            "updatedAt": "2024-08-14T01:53:06.524Z",
+            "createdAt": "2024-08-14T01:53:06.524Z",
+            "userId": "7d850e85-d433-42a4-af6e-fac2c6df167b",
+            "projectId": "9U5krb0YOaZEdeu8",
+            "user": {
+              "updatedAt": "2026-02-02T08:00:01.000Z",
+              "createdAt": "2024-05-31T15:37:28.586Z",
+              "id": "7d850e85-d433-42a4-af6e-fac2c6df167b",
+              "email": "itzabanos@gmail.com",
+              "firstName": "Itza",
+              "lastName": "Intercom",
+              "personalizationAnswers": {
+                "companyType": "other",
+                "companyIndustryExtended": [
+                  "legal-industry"
+                ],
+                "role": "business-owner",
+                "automationBeneficiary": "my-team",
+                "companySize": "<20",
+                "reportedSource": "youtube",
+                "version": "v4",
+                "personalization_survey_submitted_at": "2024-05-31T16:07:03.773Z",
+                "personalization_survey_n8n_version": "1.42.1"
+              },
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "VWjWbvwlOuqKreRg",
+                "isOnboarded": true,
+                "userActivatedAt": 1723600386734,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1759264210284
+                },
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-02",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-02-02T09:09:57.000Z",
+    "createdAt": "2026-02-02T09:04:45.795Z",
+    "versionId": "1de3e5b9-9b5b-4a25-b190-9339e1670ced",
+    "workflowId": "4L6viZKwijnDNxuj",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "*/15 * * * *"
+              }
+            ]
+          }
+        },
+        "id": "schedule-trigger",
+        "name": "Every 15 Minutes",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "calendar": {
+            "__rl": true,
+            "value": "0dc1ccadab997f41c7af87198ae1a0ac61a635f4d99b3b9b49f5c57947cd301b@group.calendar.google.com",
+            "mode": "id"
+          },
+          "options": {
+            "timeMin": "={{ $now.plus({minutes: 30}).toISO() }}",
+            "timeMax": "={{ $now.plus({days: 2}).toISO() }}",
+            "singleEvents": true
+          }
+        },
+        "id": "gcal-fetch",
+        "name": "Get Calendar Events",
+        "type": "n8n-nodes-base.googleCalendar",
+        "typeVersion": 1.2,
+        "position": [
+          208,
+          0
+        ],
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "iEbMmGly5eGaX2gX",
+            "name": "Google Calendar account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": " // Parse GCal event and extract interpreter/org names\n  const items = [];\n\n  for (const item of $input.all()) {\n    const event = item.json;\n\n    // Extract interpreter name from summary (e.g., \"Vietnamese - Mychi PHONE\")\n    const summaryMatch =\n  event.summary?.match(/^([^-]+)\\s*-\\s*(.+?)\\s+(PHONE|ZOOM|IN PERSON)$/i);\n\n    if (!summaryMatch) {\n      continue; // Skip events that don't match reminder format\n    }\n\n    const language = summaryMatch[1].trim();\n    const interpreterName = summaryMatch[2].trim();\n    const modality = summaryMatch[3].toUpperCase();\n\n    // Extract org abbreviation from location (e.g., \"SLS KIRKLAND\")\n    const locationParts = event.location?.split(' ') || [];\n    const orgAbbreviation = locationParts[0];\n\n    items.push({\n      json: {\n        gcal_event_id: event.id,\n        gcal_event: event,\n        interpreter_name: interpreterName,\n        org_abbreviation: orgAbbreviation,\n        language,\n        modality\n      }\n    });\n  }\n\n  return items;"
+        },
+        "id": "parse-event",
+        "name": "Parse Event Data",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          400,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "tableId": "organizations",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "abbreviation",
+                "keyValue": "={{ $json.org_abbreviation }}"
+              }
+            ]
+          }
+        },
+        "id": "query-org",
+        "name": "Get Organization",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          608,
+          -96
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "DcfcqMvUZR4nU3HT",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "tableId": "interpreter_aliases",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "alias",
+                "keyValue": "={{ $json.interpreter_name }}"
+              }
+            ]
+          }
+        },
+        "id": "query-alias",
+        "name": "Get Interpreter Alias",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          608,
+          112
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "DcfcqMvUZR4nU3HT",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "numberInputs": 4,
+          "options": {}
+        },
+        "id": "merge-data",
+        "name": "Merge Org + Alias",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          800,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "\n  // Build payload for renderer - GCal event format\n  const items = [];\n\n  for (const item of $input.all()) {\n    const gcalEvent = item.json.gcal_event;\n\n    // Renderer expects: summary, location, start, end, description\n    items.push({\n      json: {\n        summary: gcalEvent.summary,\n        location: gcalEvent.location,\n        start: gcalEvent.start,\n        end: gcalEvent.end,\n        description: gcalEvent.description || ''\n      }\n    });\n  }\n\n  return items;"
+        },
+        "id": "build-payload",
+        "name": "Build Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1008,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://137.184.124.88:3001/render",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}",
+          "options": {}
+        },
+        "id": "webhook-post",
+        "name": "POST to Renderer",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1200,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.grade }}",
+                "operation": "equals",
+                "value2": "A"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "check-grade",
+        "name": "Grade A?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          1408,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "sendTo": "ctrl.cmd.ai@gmail.com",
+          "subject": "={{ $json.email.subject }}",
+          "emailType": "text",
+          "message": "={{ $json.email.body }}",
+          "options": {}
+        },
+        "id": "send-email",
+        "name": "Send Email",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1600,
+          -96
+        ],
+        "webhookId": "708bb1fe-689d-46b0-81c3-9d5a0d166d81",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "NJMKlOr2YXdVwJ0y",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## Validation Failed\n\nEmail did not achieve Grade A.\nCheck validation report for issues.",
+          "color": 6
+        },
+        "id": "sticky-note-error",
+        "name": "Validation Failed Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          1600,
+          112
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "tableId": "interpreters",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "id",
+                "keyValue": "={{ $json.interpreter_id }}"
+              }
+            ]
+          }
+        },
+        "id": "query-interpreter",
+        "name": "Get Interpreter",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          864,
+          304
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "DcfcqMvUZR4nU3HT",
+            "name": "Supabase account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Every 15 Minutes": {
+        "main": [
+          [
+            {
+              "node": "Get Calendar Events",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Calendar Events": {
+        "main": [
+          [
+            {
+              "node": "Parse Event Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Event Data": {
+        "main": [
+          [
+            {
+              "node": "Get Organization",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get Interpreter Alias",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge Org + Alias",
+              "type": "main",
+              "index": 3
+            }
+          ]
+        ]
+      },
+      "Get Organization": {
+        "main": [
+          [
+            {
+              "node": "Merge Org + Alias",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Interpreter Alias": {
+        "main": [
+          [
+            {
+              "node": "Merge Org + Alias",
+              "type": "main",
+              "index": 1
+            },
+            {
+              "node": "Get Interpreter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Org + Alias": {
+        "main": [
+          [
+            {
+              "node": "Build Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Payload": {
+        "main": [
+          [
+            {
+              "node": "POST to Renderer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "POST to Renderer": {
+        "main": [
+          [
+            {
+              "node": "Grade A?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Grade A?": {
+        "main": [
+          [
+            {
+              "node": "Send Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Interpreter": {
+        "main": [
+          [
+            {
+              "node": "Merge Org + Alias",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Itza Intercom",
+    "name": "Version 1de3e5b9",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-02T09:09:57.964Z",
+        "id": 49,
+        "workflowId": "4L6viZKwijnDNxuj",
+        "versionId": "1de3e5b9-9b5b-4a25-b190-9339e1670ced",
+        "event": "activated",
+        "userId": "7d850e85-d433-42a4-af6e-fac2c6df167b"
+      }
+    ]
+  }
+}

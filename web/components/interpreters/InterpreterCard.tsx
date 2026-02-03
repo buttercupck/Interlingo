@@ -106,14 +106,32 @@ export function InterpreterCard({
                 style={{ color: 'var(--gray-700)' }}
               >
                 <span className="text-base">🌐</span>
-                <span>
+                <span className="flex-1">
                   {il.language?.name}
                   {il.certification && (
                     <span
-                      className="ml-2"
-                      style={{ color: 'var(--gray-500)' }}
+                      className="ml-2 badge badge-sm"
+                      style={{ fontSize: 'var(--text-xs)' }}
                     >
-                      ({il.certification})
+                      {il.certification}
+                    </span>
+                  )}
+                  {il.preference_rank === 1 && (
+                    <span
+                      className="ml-2 badge badge-warning badge-sm"
+                      style={{ fontSize: 'var(--text-xs)' }}
+                      title="Top priority interpreter for this language"
+                    >
+                      🔥 Top Priority
+                    </span>
+                  )}
+                  {il.preference_rank && il.preference_rank > 1 && il.preference_rank <= 3 && (
+                    <span
+                      className="ml-2"
+                      style={{ color: 'var(--gray-500)', fontSize: 'var(--text-xs)' }}
+                      title={`Preference rank: ${il.preference_rank}`}
+                    >
+                      (Rank #{il.preference_rank})
                     </span>
                   )}
                 </span>

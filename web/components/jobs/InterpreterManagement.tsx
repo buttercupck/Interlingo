@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { User, Mail, Phone, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useInterpreterMatches } from '@/lib/hooks/useInterpreterMatches';
 import {
   useGroupedAttempts,
@@ -12,6 +13,9 @@ import {
   useAssignInterpreter,
   useUnassignInterpreter,
 } from '@/lib/hooks/useJob';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import type { JobWithDetails } from '@/types/database.types';
 
 interface InterpreterManagementProps {
@@ -68,160 +72,199 @@ export function InterpreterManagement({ job, className }: InterpreterManagementP
   return (
     <div className={className}>
       {/* Section 1: Currently Assigned */}
-      <div className="card mb-6">
-        <h3 className="heading-3 section-divider-bottom">Currently Assigned</h3>
-
-        {job.interpreter ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-semibold text-gray-900">
+      <Card className="mb-6">
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Currently Assigned</h3>
+        </CardHeader>
+        <CardContent>
+          {job.interpreter ? (
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div className="space-y-1">
+                <div className="font-semibold flex items-center gap-2">
+                  <User className="h-4 w-4" />
                   {job.interpreter.first_name} {job.interpreter.last_name}
                 </div>
-                <div className="body-small text-gray-600">
-                  {job.interpreter.email} • {job.interpreter.phone}
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Mail className="h-3 w-3" />
+                    {job.interpreter.email}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Phone className="h-3 w-3" />
+                    {job.interpreter.phone}
+                  </span>
                 </div>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleRemoveAssignment}
                 disabled={unassignInterpreter.isPending}
-                className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors disabled:opacity-50"
+                className="text-red-600 hover:text-red-800 hover:bg-red-50"
               >
                 {unassignInterpreter.isPending ? 'Removing...' : 'Remove'}
-              </button>
+              </Button>
             </div>
-          </div>
-        ) : (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p className="text-gray-500 text-center">No interpreter assigned</p>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="p-4 border rounded-lg bg-muted/50 text-center">
+              <p className="text-muted-foreground">No interpreter assigned</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Section 2: Pending Responses */}
       {pendingAttempts.length > 0 && (
-        <div className="card mb-6">
-          <h3 className="heading-3 section-divider-bottom">Pending Responses</h3>
-
-          <div className="space-y-3">
+        <Card className="mb-6">
+          <CardHeader>
+            <h3 className="text-lg font-semibold">Pending Responses</h3>
+          </CardHeader>
+          <CardContent className="space-y-3">
             {pendingAttempts.map((attempt) => (
               <div
                 key={attempt.id}
-                className="bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+                className="border border-yellow-200 bg-yellow-50 rounded-lg p-4"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="font-semibold flex items-center gap-2">
+                      <User className="h-4 w-4" />
                       {attempt.interpreter.first_name} {attempt.interpreter.last_name}
                     </div>
-                    <div className="body-small text-gray-600">
-                      {attempt.interpreter.email} • {attempt.interpreter.phone}
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {attempt.interpreter.email}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {attempt.interpreter.phone}
+                      </span>
                     </div>
-                    <div className="caption text-gray-500 mt-1">
+                    <div className="text-xs text-muted-foreground">
                       Contacted: {new Date(attempt.contacted_at).toLocaleString()}
                     </div>
                   </div>
 
-                  <div className="flex gap-2 ml-4">
-                    <button
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleUnavailable(attempt.interpreter_id)}
                       disabled={markDeclined.isPending}
-                      className="button button-outline text-sm text-red-600 border-red-600 hover:bg-red-50 disabled:opacity-50"
+                      className="text-red-600 border-red-600 hover:bg-red-50"
                     >
                       Unavailable
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
                       onClick={() => handleAccept(attempt.interpreter_id)}
                       disabled={markConfirmed.isPending || assignInterpreter.isPending}
-                      className="button button-primary text-sm disabled:opacity-50"
                     >
                       Accepted
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Section 3: Available to Contact */}
-      <div className="card">
-        <div className="section-divider-bottom">
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="heading-3 mb-0">Available to Contact</h3>
-            <div className="caption text-gray-600">
+            <h3 className="text-lg font-semibold">Available to Contact</h3>
+            <div className="text-sm text-muted-foreground">
               Showing {visibleMatches.length} of {availableMatches.length}
             </div>
           </div>
-        </div>
+        </CardHeader>
 
-        {availableMatches.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p className="text-gray-500 text-center">No interpreters available to contact</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3 mb-4">
-              {visibleMatches.map((match, index) => (
-                <div
-                  key={match.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-3 flex-1">
-                      <div className="font-bold text-gray-400 text-lg">
-                        #{index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-900">
-                          {match.first_name} {match.last_name}
-                        </div>
-                        <div className="body-small text-gray-600">
-                          {match.email} • {match.phone}
-                        </div>
-                        {match.city && match.state && (
-                          <div className="caption text-gray-500 mt-1">
-                            📍 {match.city}, {match.state}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleContact(match.id)}
-                      disabled={markContacted.isPending}
-                      className="button button-secondary text-sm disabled:opacity-50 ml-4"
-                    >
-                      {markContacted.isPending ? 'Contacting...' : 'Contact'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+        <CardContent>
+          {availableMatches.length === 0 ? (
+            <div className="p-4 border rounded-lg bg-muted/50 text-center">
+              <p className="text-muted-foreground">No interpreters available to contact</p>
             </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {visibleMatches.map((match, index) => (
+                  <div
+                    key={match.id}
+                    className="border rounded-lg p-4 hover:border-primary transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex gap-3 flex-1">
+                        <Badge variant="outline" className="h-6 px-2">
+                          #{index + 1}
+                        </Badge>
+                        <div className="flex-1 space-y-1">
+                          <div className="font-semibold flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {match.first_name} {match.last_name}
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {match.email}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {match.phone}
+                            </span>
+                          </div>
+                          {match.city && match.state && (
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {match.city}, {match.state}
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-            {/* Pagination */}
-            {availableMatches.length > 5 && (
-              <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200">
-                <button
-                  onClick={handlePrevious}
-                  disabled={visibleCount <= 5}
-                  className="button button-outline text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={!hasMore}
-                  className="button button-outline text-sm disabled:opacity-50"
-                >
-                  Next
-                </button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleContact(match.id)}
+                        disabled={markContacted.isPending}
+                      >
+                        {markContacted.isPending ? 'Contacting...' : 'Contact'}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
-        )}
-      </div>
+
+              {/* Pagination */}
+              {availableMatches.length > 5 && (
+                <div className="flex items-center justify-center gap-4 pt-4 mt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevious}
+                    disabled={visibleCount <= 5}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNext}
+                    disabled={!hasMore}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

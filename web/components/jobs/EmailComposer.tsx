@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { Mail, Copy, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import type { JobWithDetails } from '@/types/database.types';
 import { getOrgInstructions, getInstructionsWithFallback } from '@/lib/services/organizationInstructions';
 import { formatInstructionsGradeA } from '@/lib/utils/instructionFormatter';
@@ -204,94 +208,109 @@ ${orgName}
   };
 
   return (
-    <div className={cn('card', 'p-0', className)}>
-      {/* Email Type Selector */}
-      <div className="border-b border-gray-200 px-5 py-5">
-        <div className="flex gap-3">
+    <Card className={className}>
+      <CardHeader>
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Mail className="h-5 w-5" />
+          Email Composer
+        </h3>
+        <div className="flex gap-2 mt-4">
           {(['REQ', 'CONF', 'REM'] as EmailType[]).map((type) => {
             const labelMap = {
               REQ: 'Request',
               CONF: 'Confirmation',
               REM: 'Reminder'
             };
+            const isSelected = selectedType === type;
             return (
-              <button
+              <Button
                 key={type}
+                variant={isSelected ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setSelectedType(type)}
                 className={cn(
-                  'button',
-                  selectedType === type
-                    ? typeColors[type]
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  isSelected && type === 'REQ' && 'bg-purple-600 hover:bg-purple-700',
+                  isSelected && type === 'CONF' && 'bg-green-600 hover:bg-green-700',
+                  isSelected && type === 'REM' && 'bg-teal-600 hover:bg-teal-700'
                 )}
               >
                 {labelMap[type]}
-              </button>
+              </Button>
             );
           })}
         </div>
-        <p className="caption mt-2" style={{ textTransform: 'none' }}>
+        <p className="text-sm text-muted-foreground mt-2">
           {selectedType === 'REQ' && 'Request availability from interpreter'}
           {selectedType === 'CONF' && 'Confirm assignment with interpreter'}
           {selectedType === 'REM' && 'Send reminder before the job'}
         </p>
-      </div>
+      </CardHeader>
 
-      {/* Warnings */}
-      {warnings.length > 0 && (
-        <div className="alert-warning border-b border-yellow-100 px-5 py-5">
-          <div className="flex items-start gap-3">
-            <span className="text-yellow-600 text-xl">⚠️</span>
-            <div>
-              <p className="text-sm font-semibold text-yellow-800 mb-2">
-                Missing Information:
-              </p>
-              <ul className="text-sm text-yellow-700 ml-5 space-y-1">
-                {warnings.map((warning, idx) => (
-                  <li key={idx}>{warning}</li>
-                ))}
-              </ul>
+      <CardContent className="space-y-6">
+        {/* Warnings */}
+        {warnings.length > 0 && (
+          <div className="border border-yellow-200 bg-yellow-50 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-yellow-800 mb-2">
+                  Missing Information:
+                </p>
+                <ul className="text-sm text-yellow-700 space-y-1 list-disc list-inside">
+                  {warnings.map((warning, idx) => (
+                    <li key={idx}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Email Preview */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-muted-foreground block mb-2">
+              Subject:
+            </label>
+            <div className="text-sm font-semibold">{subject}</div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-muted-foreground block mb-2">
+              Body:
+            </label>
+            <div className="bg-muted rounded-lg p-4 text-sm whitespace-pre-wrap font-mono border max-h-96 overflow-y-auto">
+              {body}
             </div>
           </div>
         </div>
-      )}
 
-      {/* Email Preview */}
-      <div className="px-6 py-6 space-y-5">
-        <div>
-          <label className="caption block mb-2">
-            Subject:
-          </label>
-          <div className="text-base font-semibold text-gray-900">{subject}</div>
+        {/* Actions */}
+        <div className="pt-4 border-t">
+          <Button
+            onClick={handleCopy}
+            className={cn(
+              'w-full gap-2',
+              copiedRecently && 'bg-green-600 hover:bg-green-700'
+            )}
+          >
+            {copiedRecently ? (
+              <>
+                <Check className="h-4 w-4" />
+                Copied to Clipboard!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                Copy Email to Clipboard
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Paste into your email client to send
+          </p>
         </div>
-
-        <div>
-          <label className="caption block mb-2">
-            Body:
-          </label>
-          <div className="bg-gray-50 rounded-lg p-5 text-sm text-gray-800 whitespace-pre-wrap font-mono border border-gray-200 max-h-96 overflow-y-auto">
-            {body}
-          </div>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="border-t border-gray-200 px-6 py-6 bg-gray-50">
-        <button
-          onClick={handleCopy}
-          className={cn(
-            'button w-full justify-center gap-2 py-3.5 text-[15px] font-semibold transition-all duration-200',
-            copiedRecently
-              ? 'bg-[#10B981] text-white'
-              : 'button-primary hover:-translate-y-0.5 hover:shadow-md'
-          )}
-        >
-          {copiedRecently ? '✓ Copied to Clipboard!' : '📋 Copy Email to Clipboard'}
-        </button>
-        <p className="caption text-center mt-2.5" style={{ textTransform: 'none' }}>
-          Paste into your email client to send
-        </p>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { Calendar, Clock, Trash2, Plus, Edit as EditIcon, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUpdateJob, useUpdateJobStatus, useDeleteJob } from '@/lib/hooks/useJob';
 import { EditClientRequestModal } from './EditClientRequestModal';
 import { AddLanguageRequestModal } from './AddLanguageRequestModal';
 import { EditDateTimeModal } from './EditDateTimeModal';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { JobWithDetails, ClientRequest } from '@/types/database.types';
 
 interface JobOverviewCardProps {
@@ -99,142 +104,143 @@ export function JobOverviewCard({ job, className }: JobOverviewCardProps) {
   };
 
   return (
-    <div className={cn('card', className)}>
-      {/* Header */}
-      <div className="section-divider-bottom flex items-center justify-between">
-        <div className="flex-1">
-          <h3 className="heading-3 mb-0">Commitment Block</h3>
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Commitment Block</h3>
+          <Select value={status} onValueChange={handleStatusChange} disabled={updateStatus.isPending}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+      </CardHeader>
 
-        {/* Status Dropdown */}
-        <select
-          value={status}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          disabled={updateStatus.isPending}
-          className={cn(
-            'status-dropdown',
-            status.toLowerCase().replace(/\s+/g, ''),
-            updateStatus.isPending && 'opacity-50 cursor-wait'
-          )}
-        >
-          {STATUS_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Quick Facts Row */}
-      <div className="flex flex-col gap-6 section-gap">
+      <CardContent className="space-y-6">
         {/* Date & Time */}
-        <div className="info-field">
-          <div className="flex items-center justify-between mb-0.5">
-            <div className="caption">Date & Time</div>
-            <button
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>Date & Time</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowEditDateTime(true)}
-              className="text-secondary-teal hover:text-[#0A5D61] text-xs font-medium transition-colors"
+              className="h-7 text-xs"
             >
+              <EditIcon className="h-3 w-3 mr-1" />
               Edit
-            </button>
+            </Button>
           </div>
-          <div className="info-field-value">
+          <div className="text-sm">
             {startTime ? (
               <>
-                <div>{format(startTime, 'EEEE, MMM d, yyyy')}</div>
-                <div>
+                <div className="font-medium">{format(startTime, 'EEEE, MMM d, yyyy')}</div>
+                <div className="text-muted-foreground">
                   {format(startTime, 'h:mm a')}
                   {endTime && ` - ${format(endTime, 'h:mm a')}`}
                 </div>
               </>
             ) : (
-              <>
-                <span className="text-gray-400">TBD</span>
-                <div className="mt-2">
-                  <span className="text-gray-400 text-sm">
-                    TBD (To Be Determined - Date/time not yet scheduled)
-                  </span>
-                </div>
-              </>
+              <div className="text-muted-foreground">
+                <span>TBD</span>
+                <div className="text-xs mt-1">To Be Determined - Date/time not yet scheduled</div>
+              </div>
             )}
           </div>
         </div>
 
         {/* Duration - Only show if > 2 hours */}
         {durationHours > 2 && (
-          <div className="info-field">
-            <div className="caption">Duration</div>
-            <div className="info-field-value">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Duration</span>
+            </div>
+            <div className="text-sm">
               {durationHours} {durationHours === 1 ? 'hour' : 'hours'}
             </div>
           </div>
         )}
 
-        {/* Modality Dropdown */}
-        <div className="info-field">
-          <div className="caption">Modality</div>
-          <select
-            value={modality}
-            onChange={(e) => handleModalityChange(e.target.value)}
-            disabled={updateJob.isPending}
-            className={cn(
-              'dropdown-styled',
-              updateJob.isPending && 'opacity-50 cursor-wait'
-            )}
-          >
-            {MODALITY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+        {/* Modality */}
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground">Modality</div>
+          <Select value={modality} onValueChange={handleModalityChange} disabled={updateJob.isPending}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MODALITY_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </div>
 
-      {/* Client Request Details */}
-      {job.client_requests && job.client_requests.length > 0 && (
-        <div className="section-divider">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="heading-4 mb-0">Client Request Details</h4>
-            <button
-              onClick={() => setShowAddLanguage(true)}
-              className="text-sm text-secondary-teal hover:text-[#0A5D61] font-medium transition-colors"
-            >
-              + Add New Request
-            </button>
-          </div>
-          {job.client_requests.map((request, idx) => (
-            <div key={request.id} className="group relative mb-3 last:mb-0 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-1">
-                  <div className="font-semibold text-gray-900 text-base">{request.client_name}</div>
-                  {request.case_number && request.meeting_type && (
-                    <div className="body-small">{request.case_number} — {request.meeting_type}</div>
-                  )}
-                  {request.charges && (
-                    <div className="body-small">{request.charges}</div>
-                  )}
-                  <button
-                    onClick={() => handleToggleRequestReceived(request.id, request.request_received)}
-                    className="text-gray-600 hover:text-secondary-teal text-xs font-medium flex items-center gap-2 mt-2"
-                  >
-                    <span className="w-4 h-4 border border-gray-300 rounded flex items-center justify-center bg-white">
-                      {request.request_received && <span className="text-green-600">✓</span>}
-                    </span>
-                    Request Received
-                  </button>
-                </div>
-                <button
-                  onClick={() => setEditingRequest(request)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-sm text-secondary-teal hover:text-[#0A5D61] font-medium ml-2"
-                >
-                  Edit
-                </button>
-              </div>
+        {/* Client Request Details */}
+        {job.client_requests && job.client_requests.length > 0 && (
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <h4 className="text-base font-semibold">Client Request Details</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAddLanguage(true)}
+                className="h-7 text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Request
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="space-y-3">
+              {job.client_requests.map((request) => (
+                <div key={request.id} className="group relative p-3 rounded-lg border hover:border-primary transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 space-y-1">
+                      <div className="font-semibold text-sm">{request.client_name}</div>
+                      {request.case_number && request.meeting_type && (
+                        <div className="text-sm text-muted-foreground">{request.case_number} — {request.meeting_type}</div>
+                      )}
+                      {request.charges && (
+                        <div className="text-sm text-muted-foreground">{request.charges}</div>
+                      )}
+                      <button
+                        onClick={() => handleToggleRequestReceived(request.id, request.request_received)}
+                        className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary mt-2"
+                      >
+                        <span className="w-4 h-4 border rounded flex items-center justify-center bg-background">
+                          {request.request_received && <Check className="h-3 w-3 text-green-600" />}
+                        </span>
+                        Request Received
+                      </button>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingRequest(request)}
+                      className="opacity-0 group-hover:opacity-100 h-7 text-xs"
+                    >
+                      <EditIcon className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Edit Client Request Modal */}
       {editingRequest && (
@@ -261,35 +267,41 @@ export function JobOverviewCard({ job, className }: JobOverviewCardProps) {
         />
       )}
 
-      {/* Delete Button */}
-      <div className="section-divider">
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="text-sm text-red-600 hover:text-red-800 font-semibold transition-colors"
-          >
-            🗑️ Delete Job
-          </button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-700">Are you sure?</span>
-            <button
-              onClick={handleDelete}
-              disabled={deleteJob.isPending}
-              className="button-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+        {/* Delete Button */}
+        <div className="pt-4 border-t">
+          {!showDeleteConfirm ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-red-600 hover:text-red-800 hover:bg-red-50"
             >
-              {deleteJob.isPending ? 'Deleting...' : 'Yes, Delete'}
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(false)}
-              disabled={deleteJob.isPending}
-              className="button-sm bg-gray-200 text-gray-700 hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Job
+            </Button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-sm">Are you sure?</span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDelete}
+                disabled={deleteJob.isPending}
+              >
+                {deleteJob.isPending ? 'Deleting...' : 'Yes, Delete'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleteJob.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,223 +1,276 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useJobs } from '@/lib/hooks/useJobs';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { Calendar, User, Building2, Clock, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function JobsBoardPage() {
   const { data: jobs, isLoading, error } = useJobs();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterModality, setFilterModality] = useState<string>('all');
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="heading-2 mb-0 text-primary">Jobs Board</h1>
-        </div>
-        <div className="card p-8">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-          <p className="body-base text-center mt-4">Loading jobs...</p>
-        </div>
-      </div>
-    );
-  }
+  // Filtered jobs
+  const filteredJobs = useMemo(() => {
+    if (!jobs) return [];
+
+    let filtered = jobs;
+
+    // Filter by status
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((job) => job.status === filterStatus);
+    }
+
+    // Filter by modality
+    if (filterModality !== 'all') {
+      filtered = filtered.filter((job) => job.modality === filterModality);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((job) => {
+        const interpreterName = job.interpreter
+          ? `${job.interpreter.first_name} ${job.interpreter.last_name}`.toLowerCase()
+          : '';
+        const language = job.client_requests?.[0]?.language?.name?.toLowerCase() || '';
+        const organization = job.location?.organization?.name?.toLowerCase() || '';
+
+        return (
+          interpreterName.includes(query) ||
+          language.includes(query) ||
+          organization.includes(query)
+        );
+      });
+    }
+
+    return filtered;
+  }, [jobs, filterStatus, filterModality, searchQuery]);
+
+  // Get unique statuses and modalities
+  const statuses = useMemo(() => {
+    if (!jobs) return [];
+    return Array.from(new Set(jobs.map((j) => j.status).filter(Boolean)));
+  }, [jobs]);
+
+  const modalities = useMemo(() => {
+    if (!jobs) return [];
+    return Array.from(new Set(jobs.map((j) => j.modality).filter((m): m is string => Boolean(m))));
+  }, [jobs]);
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="heading-2 mb-0 text-primary">Jobs Board</h1>
-        </div>
-        <div className="card p-8">
-          <div className="text-center">
-            <div className="text-4xl mb-4">⚠️</div>
-            <h2 className="heading-3 mb-2">
-              Error Loading Jobs
-            </h2>
-            <p className="body-base mb-4">
-              {error instanceof Error ? error.message : 'An error occurred'}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="button button-primary"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
+      <div className="container mx-auto p-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="rounded-full bg-red-100 p-3">
+                <Calendar className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-red-900">Error Loading Jobs</h3>
+                <p className="text-sm text-red-700 mt-1">
+                  {error instanceof Error ? error.message : 'An error occurred'}
+                </p>
+              </div>
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="heading-1 mb-0">Jobs Board</h1>
-          <p className="body-small mt-2">
-            {jobs?.length || 0} total jobs
+          <h1 className="text-3xl font-bold tracking-tight">Jobs Board</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage interpretation job assignments and scheduling
           </p>
         </div>
-        <button className="button bg-secondary-teal text-white hover:bg-[#0A5D61] hover:-translate-y-0.5 transition-all duration-200 shadow-sm hover:shadow-md">
-          + New Job
-        </button>
+        <Button>+ New Job</Button>
       </div>
 
-      {/* Jobs Table */}
-      <div className="card overflow-hidden">
-        {!jobs || jobs.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="heading-3 mb-2">
-              No Jobs Yet
-            </h3>
-            <p className="body-base mb-6">
-              Get started by creating your first interpreter assignment.
-            </p>
-            <button className="button bg-secondary-teal text-white hover:bg-[#0A5D61] hover:-translate-y-0.5 transition-all duration-200 shadow-sm hover:shadow-md px-6 py-3">
-              Create First Job
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Date/Time
-                  </th>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Language
-                  </th>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Organization
-                  </th>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Interpreter
-                  </th>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Modality
-                  </th>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left caption uppercase tracking-widest">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {jobs.map((job) => {
-                  const startTime = job.start_time
-                    ? new Date(job.start_time)
-                    : null;
-
-                  // Get first client request (most jobs have one request)
-                  const clientRequest = job.client_requests?.[0];
-                  const language = clientRequest?.language?.name || 'N/A';
-                  const organization = job.location?.organization?.name || 'Unknown Organization';
-
-                  const interpreterName = job.interpreter
-                    ? `${job.interpreter.first_name} ${job.interpreter.last_name}`
-                    : 'Unassigned';
-                  const status = job.status || 'Initial';
-
-                  // Calculate if job is upcoming (within 48 hours)
-                  const isUpcoming = startTime ?
-                    (startTime.getTime() - Date.now()) < (48 * 60 * 60 * 1000) &&
-                    startTime.getTime() > Date.now()
-                    : false;
-
-                  // Duration display: only if > 2 hours, show in hours
-                  const durationDisplay = job.duration && job.duration > 120
-                    ? `${(job.duration / 60).toFixed(1)}h duration`
-                    : '';
-
-                  // Design system badge classes
-                  const statusBadges: Record<string, string> = {
-                    Initial: 'badge-info',
-                    Pending: 'badge-warning',
-                    Confirmed: 'badge-success',
-                    Completed: 'badge-info',
-                    Cancelled: 'badge-danger',
-                  };
-
-                  return (
-                    <tr
-                      key={job.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      {/* Date/Time Column */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {startTime ? (
-                          <div>
-                            <div className={`body-small font-semibold ${isUpcoming ? 'text-secondary-teal' : 'text-gray-900'}`}>
-                              {format(startTime, 'MMM d, yyyy')}
-                            </div>
-                            <div className="body-small">
-                              {format(startTime, 'h:mm a')}
-                            </div>
-                            {durationDisplay && (
-                              <div className="caption mt-1">
-                                {durationDisplay}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="body-small">TBD</span>
-                        )}
-                      </td>
-
-                      {/* Language Column */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="body-small font-medium text-gray-900">{language}</div>
-                      </td>
-
-                      {/* Organization Column */}
-                      <td className="px-6 py-4">
-                        <div className="body-small text-gray-900">{organization}</div>
-                      </td>
-
-                      {/* Interpreter Column */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`body-small ${interpreterName === 'Unassigned' ? 'text-gray-400 italic' : 'text-gray-900'}`}>
-                          {interpreterName}
-                        </div>
-                      </td>
-
-                      {/* Modality Column */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="body-small text-gray-900">
-                          {job.modality || 'N/A'}
-                        </div>
-                      </td>
-
-                      {/* Status Column - Design System Badge */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`badge ${statusBadges[status] || statusBadges.Initial}`}>
-                          {status}
-                        </span>
-                      </td>
-
-                      {/* Actions Column */}
-                      <td className="px-6 py-4 whitespace-nowrap body-small font-medium">
-                        <Link
-                          href={`/dashboard/jobs/${job.id}`}
-                          className="text-secondary-teal hover:text-[#0A5D61] font-medium transition-colors"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      {/* Search and Filters */}
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search jobs by language, organization, or interpreter..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {statuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterModality} onValueChange={setFilterModality}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Modality" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Modalities</SelectItem>
+            {modalities.map((modality) => (
+              <SelectItem key={modality} value={modality}>
+                {modality}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(searchQuery || filterStatus !== 'all' || filterModality !== 'all') && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSearchQuery('');
+              setFilterStatus('all');
+              setFilterModality('all');
+            }}
+          >
+            Clear
+          </Button>
         )}
       </div>
+
+      {/* Results count */}
+      {!isLoading && (
+        <p className="text-sm text-muted-foreground">
+          Showing {filteredJobs.length} of {jobs?.length || 0} jobs
+        </p>
+      )}
+
+      {/* Jobs Grid */}
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="h-6 w-20 bg-muted animate-pulse rounded" />
+                <div className="h-5 w-3/4 bg-muted animate-pulse rounded mt-2" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                <div className="h-4 w-2/3 bg-muted animate-pulse rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : filteredJobs.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="rounded-full bg-muted p-3">
+                <Calendar className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="font-semibold">No Jobs Found</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {searchQuery || filterStatus !== 'all' || filterModality !== 'all'
+                    ? 'Try adjusting your search or filters'
+                    : 'Get started by creating your first job'}
+                </p>
+              </div>
+              {!searchQuery && filterStatus === 'all' && filterModality === 'all' && (
+                <Button>+ New Job</Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredJobs.map((job) => {
+            const startTime = job.start_time ? new Date(job.start_time) : null;
+            const clientRequest = job.client_requests?.[0];
+            const language = clientRequest?.language?.name || 'Unknown';
+            const organization = job.location?.organization?.name || 'Unknown Organization';
+            const interpreterName = job.interpreter
+              ? `${job.interpreter.first_name} ${job.interpreter.last_name}`
+              : 'Unassigned';
+            const status = job.status || 'Initial';
+
+            const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+              Initial: 'secondary',
+              Pending: 'outline',
+              Confirmed: 'default',
+              Completed: 'secondary',
+              Cancelled: 'destructive',
+            };
+
+            return (
+              <Card key={job.id} className="flex flex-col">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <Badge variant={statusVariants[status] || 'secondary'}>
+                      {status}
+                    </Badge>
+                    {job.modality && (
+                      <Badge variant="outline" className="text-xs">
+                        {job.modality}
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-lg mt-2">{language}</h3>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-2 text-sm">
+                  {startTime && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        {format(startTime, 'MMM d, yyyy')} at {format(startTime, 'h:mm a')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Building2 className="h-4 w-4" />
+                    <span className="truncate">{organization}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    <span className={interpreterName === 'Unassigned' ? 'italic' : ''}>
+                      {interpreterName}
+                    </span>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link href={`/dashboard/jobs/${job.id}`} className="w-full">
+                    <Button variant="default" size="sm" className="w-full">
+                      View Details
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
