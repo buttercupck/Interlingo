@@ -10,7 +10,10 @@
       "name": "Parse Event",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [224, 304],
+      "position": [
+        224,
+        304
+      ],
       "id": "b829e31a-1d9e-43a1-bb53-40ee04235944"
     },
     {
@@ -24,7 +27,10 @@
       "name": "Lookup Language ID",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [448, 304],
+      "position": [
+        448,
+        304
+      ],
       "id": "lookup-lang-001",
       "alwaysOutputData": true,
       "credentials": {
@@ -41,7 +47,10 @@
       "name": "Process Language Lookup",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [672, 304],
+      "position": [
+        672,
+        304
+      ],
       "alwaysOutputData": true,
       "id": "process-lang-001"
     },
@@ -72,7 +81,10 @@
       "name": "Language Found?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [896, 304],
+      "position": [
+        896,
+        304
+      ],
       "id": "if-lang-001"
     },
     {
@@ -82,40 +94,25 @@
       "name": "Log Missing Language",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 416],
+      "position": [
+        1120,
+        416
+      ],
       "id": "log-lang-error-001"
     },
     {
       "parameters": {
-        "operation": "getAll",
-        "tableId": "locations",
-        "limit": 1,
-        "filterType": "string",
-        "filterString": "organization_id=in.(SELECT id FROM organizations WHERE abbreviation=eq.={{ $json.org_abbreviation.trim() }})"
+        "jsCode": "// Get current item data (already has language_id and org_id)\nconst currentItem = $input.item;\nconst itemIndex = currentItem.index || 0;\n\n// Get data from Process Org ID Lookup\nconst allProcessedOrg = $('Process Org ID Lookup').all();\nconst currentData = allProcessedOrg[itemIndex].json;\n\n// Get location lookup result from Supabase node\nconst locationLookupResults = $input.all();\n\n// Check if we got results\nif (!locationLookupResults || locationLookupResults.length === 0) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'missing_location',\n      error_message: `Location for organization \"${currentData.org_abbreviation}\" (org_id: ${currentData.org_id}) not found in locations table`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation,\n      org_id: currentData.org_id\n    }\n  }];\n}\n\nconst firstResult = locationLookupResults[0].json;\n\nif (!firstResult || !firstResult.id) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'invalid_location_result',\n      error_message: `Invalid result when looking up location for organization \"${currentData.org_abbreviation}\"`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation,\n      org_id: currentData.org_id\n    }\n  }];\n}\n\nconst locationId = firstResult.id;\n\n// Pass through all data plus location_id (explicit fields, no spread)\nreturn [{\n  json: {\n    gcal_event_id: currentData.gcal_event_id,\n    start_time: currentData.start_time,\n    end_time: currentData.end_time,\n    language: currentData.language,\n    interpreter: currentData.interpreter,\n    modality: currentData.modality,\n    org_abbreviation: currentData.org_abbreviation,\n    case_notes: currentData.case_notes,\n    fingerprint_raw: currentData.fingerprint_raw,\n    fingerprint_hash: currentData.fingerprint_hash,\n    language_id: currentData.language_id,\n    org_id: currentData.org_id,\n    location_id: locationId,\n    error: false\n  }\n}];"
       },
-      "name": "Lookup Organization/Location ID",
-      "type": "n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [1120, 192],
-      "id": "lookup-org-001",
-      "alwaysOutputData": true,
-      "credentials": {
-        "supabaseApi": {
-          "id": "DcfcqMvUZR4nU3HT",
-          "name": "Supabase account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Get current item data (already has language_id)\nconst currentData = $input.first().json;\n\n// Get organization/location lookup result from Supabase node\nconst orgLookupResults = $('Lookup Organization/Location ID').all();\n\n// Check if we got results\nif (!orgLookupResults || orgLookupResults.length === 0) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'missing_organization',\n      error_message: `Organization \"${currentData.org_abbreviation}\" not found in organizations table`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation\n    }\n  }];\n}\n\nconst firstResult = orgLookupResults[0].json;\n\nif (!firstResult || !firstResult.id) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'invalid_organization_result',\n      error_message: `Invalid result when looking up organization \"${currentData.org_abbreviation}\"`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation\n    }\n  }];\n}\n\nconst locationId = firstResult.id;\n\n// Pass through all data plus location_id (explicit fields, no spread)\nreturn [{\n  json: {\n    gcal_event_id: currentData.gcal_event_id,\n    start_time: currentData.start_time,\n    end_time: currentData.end_time,\n    language: currentData.language,\n    interpreter: currentData.interpreter,\n    modality: currentData.modality,\n    org_abbreviation: currentData.org_abbreviation,\n    case_notes: currentData.case_notes,\n    fingerprint_raw: currentData.fingerprint_raw,\n    fingerprint_hash: currentData.fingerprint_hash,\n    language_id: currentData.language_id,\n    location_id: locationId,\n    error: false\n  }\n}];"
-      },
-      "name": "Process Org Lookup",
+      "name": "Process Location Lookup",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1344, 192],
+      "position": [
+        1344,
+        192
+      ],
       "alwaysOutputData": true,
-      "id": "process-org-001"
+      "id": "process-location-001"
     },
     {
       "parameters": {
@@ -144,7 +141,10 @@
       "name": "Organization Found?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1568, 192],
+      "position": [
+        1568,
+        192
+      ],
       "id": "if-org-001"
     },
     {
@@ -154,7 +154,10 @@
       "name": "Log Missing Organization",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1792, 304],
+      "position": [
+        1792,
+        304
+      ],
       "id": "log-org-error-001"
     },
     {
@@ -168,7 +171,10 @@
       "name": "Lookup Interpreter ID",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [1792, 80],
+      "position": [
+        1792,
+        80
+      ],
       "id": "lookup-interp-001",
       "alwaysOutputData": true,
       "credentials": {
@@ -185,7 +191,10 @@
       "name": "Process Interpreter Lookup",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2016, 80],
+      "position": [
+        2016,
+        80
+      ],
       "alwaysOutputData": true,
       "id": "process-interp-001"
     },
@@ -196,7 +205,10 @@
       "name": "Parse Case Notes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2240, 80],
+      "position": [
+        2240,
+        80
+      ],
       "alwaysOutputData": true,
       "id": "parse-case-001"
     },
@@ -211,7 +223,10 @@
       "name": "Query Existing Job",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [2464, 80],
+      "position": [
+        2464,
+        80
+      ],
       "id": "b4b1f5db-8cb3-4d48-9aea-1fafaef06961",
       "alwaysOutputData": true,
       "credentials": {
@@ -228,7 +243,10 @@
       "name": "Check Job Exists",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2688, 80],
+      "position": [
+        2688,
+        80
+      ],
       "alwaysOutputData": true,
       "id": "550896f5-1da3-4d0e-9293-211940b34ea2"
     },
@@ -259,7 +277,10 @@
       "name": "Job Exists?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [2912, 80],
+      "position": [
+        2912,
+        80
+      ],
       "id": "12637bee-9d4d-4508-acf7-c1a6187b7080"
     },
     {
@@ -269,7 +290,10 @@
       "name": "Compare Changes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3136, -32],
+      "position": [
+        3136,
+        -32
+      ],
       "id": "af14e792-15ac-4972-8c5f-6aa36eefaa4f"
     },
     {
@@ -298,7 +322,10 @@
       "name": "Has Changes?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [3360, -32],
+      "position": [
+        3360,
+        -32
+      ],
       "id": "18414a8e-c064-4ebf-b9e8-3b77edae460d"
     },
     {
@@ -309,7 +336,10 @@
       "name": "Update Existing Job",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [3584, -144],
+      "position": [
+        3584,
+        -144
+      ],
       "id": "c5e6e504-c360-4917-9044-dafea094805f",
       "credentials": {
         "supabaseApi": {
@@ -325,7 +355,10 @@
       "name": "Log Version History",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [3808, -144],
+      "position": [
+        3808,
+        -144
+      ],
       "id": "96448909-1683-4fdf-847a-17a0974cbe8f",
       "credentials": {
         "supabaseApi": {
@@ -342,7 +375,10 @@
       "name": "Touch Last Synced",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [3584, 80],
+      "position": [
+        3584,
+        80
+      ],
       "id": "c76beb6c-3f8c-4dd7-9c71-60da702cf4ca",
       "credentials": {
         "supabaseApi": {
@@ -395,7 +431,10 @@
       "name": "Create Commitment Block",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [3136, 192],
+      "position": [
+        3136,
+        192
+      ],
       "id": "80247b00-414c-4378-8e59-9c9fbef52c4d",
       "credentials": {
         "supabaseApi": {
@@ -440,7 +479,10 @@
       "name": "Create Client Request",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [3360, 192],
+      "position": [
+        3360,
+        192
+      ],
       "id": "create-client-req-001",
       "credentials": {
         "supabaseApi": {
@@ -469,13 +511,78 @@
       },
       "type": "n8n-nodes-base.googleCalendarTrigger",
       "typeVersion": 1,
-      "position": [0, 288],
+      "position": [
+        0,
+        288
+      ],
       "id": "017d58c3-0d42-461b-b3e2-8e4d168331c3",
       "name": "Google Calendar Trigger1",
       "credentials": {
         "googleCalendarOAuth2Api": {
           "id": "iEbMmGly5eGaX2gX",
           "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "organizations",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "abbreviation=eq.{{ $json.org_abbreviation }}"
+      },
+      "name": "Lookup Organization ID",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "lookup-org-002",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current item data (already has language_id)\nconst currentItem = $input.item;\nconst itemIndex = currentItem.index || 0;\n\n// Get data from Language Found node\nconst allProcessedLang = $('Process Language Lookup').all();\nconst currentData = allProcessedLang[itemIndex].json;\n\n// Get organization lookup result\nconst orgLookupResults = $input.all();\n\n// Check if we got results\nif (!orgLookupResults || orgLookupResults.length === 0) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'missing_organization',\n      error_message: `Organization \"${currentData.org_abbreviation}\" not found in organizations table`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation\n    }\n  }];\n}\n\nconst firstResult = orgLookupResults[0].json;\n\nif (!firstResult || !firstResult.id) {\n  return [{\n    json: {\n      error: true,\n      error_type: 'invalid_organization_result',\n      error_message: `Invalid result when looking up organization \"${currentData.org_abbreviation}\"`,\n      gcal_event_id: currentData.gcal_event_id,\n      start_time: currentData.start_time,\n      org_abbreviation: currentData.org_abbreviation\n    }\n  }];\n}\n\nconst orgId = firstResult.id;\n\n// Pass through all data plus org_id (explicit fields, no spread)\nreturn [{\n  json: {\n    gcal_event_id: currentData.gcal_event_id,\n    start_time: currentData.start_time,\n    end_time: currentData.end_time,\n    language: currentData.language,\n    interpreter: currentData.interpreter,\n    modality: currentData.modality,\n    org_abbreviation: currentData.org_abbreviation,\n    case_notes: currentData.case_notes,\n    fingerprint_raw: currentData.fingerprint_raw,\n    fingerprint_hash: currentData.fingerprint_hash,\n    language_id: currentData.language_id,\n    org_id: orgId,\n    error: false\n  }\n}];"
+      },
+      "name": "Process Org ID Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        192
+      ],
+      "alwaysOutputData": true,
+      "id": "process-org-id-001"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "locations",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "org_id=eq.{{ $json.org_id }}"
+      },
+      "name": "Lookup Location ID",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        192
+      ],
+      "id": "lookup-location-001",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "DcfcqMvUZR4nU3HT",
+          "name": "Supabase account"
         }
       }
     }
@@ -518,7 +625,7 @@
       "main": [
         [
           {
-            "node": "Lookup Organization/Location ID",
+            "node": "Lookup Organization ID",
             "type": "main",
             "index": 0
           }
@@ -526,28 +633,6 @@
         [
           {
             "node": "Log Missing Language",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Lookup Organization/Location ID": {
-      "main": [
-        [
-          {
-            "node": "Process Org Lookup",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process Org Lookup": {
-      "main": [
-        [
-          {
-            "node": "Organization Found?",
             "type": "main",
             "index": 0
           }
@@ -701,6 +786,50 @@
         [
           {
             "node": "Parse Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Organization ID": {
+      "main": [
+        [
+          {
+            "node": "Process Org ID Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Org ID Lookup": {
+      "main": [
+        [
+          {
+            "node": "Lookup Location ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Location ID": {
+      "main": [
+        [
+          {
+            "node": "Process Location Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Location Lookup": {
+      "main": [
+        [
+          {
+            "node": "Organization Found?",
             "type": "main",
             "index": 0
           }
