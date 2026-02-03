@@ -101,6 +101,34 @@ export function useInterpreterMatches(job: JobWithDetails | undefined) {
 
         reasons.push(`Supports ${requiredModality}`);
 
+        // Check unavailability
+        if (job.start_time && job.end_time) {
+          const { data: unavailabilityBlocks } = await supabase
+            .from('interpreter_unavailability')
+            .select('*')
+            .eq('interpreter_id', interpreter.id);
+
+          if (unavailabilityBlocks && unavailabilityBlocks.length > 0) {
+            const jobStart = new Date(job.start_time);
+            const jobEnd = new Date(job.end_time);
+
+            const hasConflict = unavailabilityBlocks.some((block) => {
+              const blockStart = new Date(block.start_time);
+              const blockEnd = new Date(block.end_time);
+              // Check for overlap
+              return jobStart < blockEnd && jobEnd > blockStart;
+            });
+
+            if (hasConflict) {
+              unavailable.push({
+                interpreter,
+                reason: 'Unavailable during job time',
+              });
+              continue;
+            }
+          }
+        }
+
         // Step 3: Prioritize by Certification
         if (certification === 'Certified') {
           score = 100;
