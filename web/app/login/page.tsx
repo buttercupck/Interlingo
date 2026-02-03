@@ -2,6 +2,12 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -42,62 +48,61 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary font-secondary">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <Card className="max-w-md w-full">
+        <CardHeader className="text-center space-y-2">
+          <CardTitle className="text-3xl font-bold tracking-tight">
             Interlingo
-          </h1>
-          <p className="text-gray-600 mt-2">Sign in with your email</p>
-        </div>
+          </CardTitle>
+          <CardDescription>
+            Sign in with your email address
+          </CardDescription>
+        </CardHeader>
 
-        <form onSubmit={handleMagicLink} className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="you@example.com"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          {message && (
-            <div
-              className={`p-4 rounded-lg ${
-                message.type === 'success'
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}
-            >
-              {message.text}
+        <CardContent>
+          <form onSubmit={handleMagicLink} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-9"
+                  placeholder="you@example.com"
+                  required
+                  disabled={loading}
+                />
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary-light transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Sending...' : 'Send Magic Link'}
-          </button>
-        </form>
+            {message && (
+              <Alert variant={message.type === 'success' ? 'default' : 'destructive'}>
+                {message.type === 'success' ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
+                <AlertDescription>{message.text}</AlertDescription>
+              </Alert>
+            )}
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            No password needed - we'll email you a secure login link
-          </p>
-        </div>
-      </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? 'Sending...' : 'Send Magic Link'}
+            </Button>
+
+            <p className="text-sm text-muted-foreground text-center mt-4">
+              No password needed - we'll email you a secure login link
+            </p>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
