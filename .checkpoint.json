@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-02-02T23:15:00-08:00",
+  "lastUpdated": "2026-02-03T00:10:00-08:00",
   "activeProject": "Interlingo",
   "workingDirectory": "/Users/intercomlanguageservices/bcck_vault/INCOME/Interlingo/n8n-workflows",
   "sessionsToday": [
@@ -88,7 +88,7 @@
     },
     {
       "number": 5,
-      "startTime": "22:45 (n8n workflow debugging)",
+      "startTime": "22:45 (n8n workflow debugging - session 1)",
       "accomplishments": [
         "Analyzed Council debate on deployment plans (OPERATIONS-PLAN-Deduplication.md vs DEPLOYMENT-PLAN.md)",
         "Clarified architecture: GCal → N8N (permanent intake) → Supabase → Interlingo UI",
@@ -114,87 +114,87 @@
         "n8n-workflows/PATH-2-IMPLEMENTATION-PLAN.md",
         "n8n-workflows/PATH-2-TESTING-GUIDE.md",
         "n8n-workflows/INVESTIGATION-REPORT-Multiple-Matches-Error.md"
-      ],
-      "workflowIterations": [
-        {"issue": "$node[] syntax error", "fix": "Changed to $() function syntax", "iteration": 1},
-        {"issue": "Spread operator causing read-only property error", "fix": "Explicitly listed all fields", "iteration": 2},
-        {"issue": "$().item() is not a function", "fix": "Changed to $().all()[$itemIndex]", "iteration": 3},
-        {"issue": "Log nodes accessing data.parsed.*", "fix": "Changed to data.* direct access", "iteration": 4}
-      ],
-      "databaseChanges": [
-        "Deleted duplicate language: 'AMHARIC' (id: cdb75528...)",
-        "Updated 3 interpreter_languages references to 'Amharic' (id: 90862e52...)",
-        "Verified only one 'Amharic' entry remains"
-      ],
-      "agentsLaunched": [
-        {"type": "engineer", "name": "Dev Patel", "agentId": "a606606", "output": "INVESTIGATION-REPORT-Multiple-Matches-Error.md"}
       ]
+    },
+    {
+      "number": 6,
+      "startTime": "22:23 (email architecture)",
+      "accomplishments": [
+        "Council debate on email generation architecture (Architect, Engineer, Designer, Researcher)",
+        "Unanimous consensus: Markdown as source of truth with database as cache",
+        "Architecture pattern validated: Text files as config source (Terraform, Kubernetes, GitOps)",
+        "Decisions: Manual sync triggers, Next.js API route (not standalone service), incremental testing",
+        "Created migration 009: Add synced_at TIMESTAMP column to organizations table",
+        "Built org-config-sync.ts service: gray-matter parsing, section extraction, preprocessing, Supabase upsert",
+        "Installed dependencies: gray-matter@4.0.3, glob@13.0.0",
+        "Explained complete data flow: Markdown → Sync → DB → EmailGen → Grade A Formatting → Aurora Benitez",
+        "Clarified placeholder substitution: [Language Name] → Spanish, [Interpreter Full Name] → Aurora Benitez",
+        "Validated three-layer resolution: org-specific > standard modality > fallback"
+      ],
+      "filesModified": [
+        "supabase/migrations/009_add_synced_at_column.sql",
+        "services/org-config-sync.ts",
+        "package.json",
+        "bun.lock"
+      ]
+    },
+    {
+      "number": 7,
+      "startTime": "23:45 (n8n workflow debugging - session 2)",
+      "accomplishments": [
+        "Fixed critical double-equals filter bug: name=eq.={{ }} → name=eq.{{ }} (removed extra =)",
+        "Punjabi language lookup now working correctly - returns language_id",
+        "Fixed Process Language Lookup: $itemIndex → $input.item.index",
+        "Analyzed n8n execution database to trace workflow execution failures",
+        "Identified organization/location lookup incorrectly combined in single node",
+        "Verified schema: locations table uses org_id not organization_id",
+        "Confirmed need to split into separate nodes: Lookup Organization ID → Lookup Location ID",
+        "Workflow successfully progressed past language lookup to organization lookup stage"
+      ],
+      "filesModified": [
+        "n8n-workflows/gcal-to-interlingo-upsert-path2.json"
+      ],
+      "criticalFixes": [
+        "Filter syntax: n8n expressions don't use = before {{ }} - causes name=eq.=value bug",
+        "Item indexing: n8n doesn't have $itemIndex variable - use $input.item.index",
+        "PostgREST: Cannot use SELECT subqueries in filters - need separate node lookups",
+        "Schema: locations.org_id is correct column name (not organization_id)"
+      ],
+      "nextIssueToFix": "Split 'Lookup Organization/Location ID' into two separate Supabase nodes"
     }
   ],
-  "currentTask": "n8n workflow debugging - Path 2 lookup logic working, error handling functional, needs testing with complete dataset",
+  "currentTask": "Need to split Lookup Organization/Location ID into two separate nodes: (1) Lookup Organization ID: organizations table, filter abbreviation=eq.{{ $json.org_abbreviation }} → returns org_id, (2) Lookup Location ID: locations table, filter org_id=eq.{{ $json.org_id }} → returns location_id",
   "filesInProgress": [
     "n8n-workflows/gcal-to-interlingo-upsert-path2.json"
   ],
   "nextSteps": [
-    "Add 'Mam' language to database OR test with single language event",
-    "Verify full workflow creates commitment_blocks + client_requests successfully",
-    "Test dual-language event creates 2 records correctly",
-    "Implement case normalization (toTitleCase) from Dev Patel's report",
-    "Add case-insensitive unique constraint to languages table"
+    "Create separate 'Lookup Organization ID' Supabase node",
+    "Create separate 'Lookup Location ID' Supabase node",
+    "Update Process Org Lookup to handle both lookups",
+    "Test full workflow with Punjabi event end-to-end",
+    "Verify commitment_blocks and client_requests get created"
   ],
-  "keyDecisions": [
-    "Path 2 (normalized lookup) chosen over Path 1 (text fields)",
-    "n8n is permanent intake system, not temporary patch",
-    "Workflow splits dual-language on '/' creating separate commitment_blocks",
-    "Fingerprint: ${startTime}|${orgAbbrev}|${language}",
-    "Error handling: Language/org failures block job, interpreter allows NULL"
-  ],
-  "contextWindowUsage": "127533/200000 (64%)"
-},
-{
-  "number": 6,
-  "startTime": "22:23 (email architecture session)",
-  "accomplishments": [
-    "Council debate on email generation architecture (Architect, Engineer, Designer, Researcher)",
-    "Unanimous consensus: Markdown as source of truth with database as cache",
-    "Architecture pattern validated: Text files as config source (Terraform, Kubernetes, GitOps)",
-    "Decisions: Manual sync triggers, Next.js API route (not standalone service), incremental testing",
-    "Created migration 009: Add synced_at TIMESTAMP column to organizations table",
-    "Built org-config-sync.ts service: gray-matter parsing, section extraction, preprocessing, Supabase upsert",
-    "Installed dependencies: gray-matter@4.0.3, glob@13.0.0",
-    "Explained complete data flow: Markdown → Sync → DB → EmailGen → Grade A Formatting → Aurora Benitez",
-    "Clarified placeholder substitution: [Language Name] → Spanish, [Interpreter Full Name] → Aurora Benitez",
-    "Validated three-layer resolution: org-specific > standard modality > fallback"
-  ],
-  "filesModified": [
-    "supabase/migrations/009_add_synced_at_column.sql",
-    "services/org-config-sync.ts",
-    "package.json",
-    "bun.lock"
-  ],
-  "blockers": [
-    "Need SUPABASE_SERVICE_ROLE_KEY from dashboard to test sync",
-    "Need to apply migration 009: ALTER TABLE organizations ADD COLUMN synced_at"
-  ],
-  "nextSteps": [
-    "Get service role key: https://supabase.com/dashboard/project/anqfdvyhexpxdpgbkgmd/settings/api",
-    "Apply migration in SQL editor: https://supabase.com/dashboard/project/anqfdvyhexpxdpgbkgmd/sql",
-    "Test sync: bun run services/org-config-sync.ts Kent-Municipal-Court",
-    "Build Next.js API route: web/app/api/emails/render/route.ts"
-  ],
-  "councilDecisions": {
-    "architecture": "Markdown source → One-way sync → Database cache → Dual channels (n8n + web app)",
-    "syncStrategy": "Manual triggers (file watcher later), GitHub Actions pattern available",
-    "renderer": "Next.js API route at /api/emails/render (simpler than standalone)",
-    "testingApproach": "Incremental: Kent + 1 other org before full 17-org rollout",
-    "validationPattern": "Industry standard (TinaCMS, Terraform, Kubernetes configs)"
-  }
-]
-  ],
-  "currentTask": "Ready to test org-config-sync with Kent - blocked on service role key",
-  "filesInProgress": [
-    "services/org-config-sync.ts",
-    "supabase/migrations/009_add_synced_at_column.sql"
-  ],
-  "contextWindowUsage": "134012/200000 (67%)"
+  "workflowId": "aWgX19xgSo8mfGCf",
+  "workflowName": "gcal-to-interlingo-upsert-path2",
+  "testData": {
+    "pinnedEvent": "Punjabi - Manpreet ZOOM",
+    "location": "ENUMCLAW",
+    "languageVerified": "Punjabi exists with id: ba0fc404-be22-47cc-bb3d-7ed054197caa"
+  },
+  "technicalContext": {
+    "n8nSyntax": {
+      "correctNodeReference": "$('NodeName').all()",
+      "correctItemIndex": "$input.item.index (NOT $itemIndex)",
+      "correctFilter": "name=eq.{{ $json.field }} (NO = before {{)",
+      "avoidSpreadOperator": "Causes read-only property errors with Error objects"
+    },
+    "schemaDetails": {
+      "languagesTable": "name column, returns id (UUID) - WORKING",
+      "organizationsTable": "abbreviation column, returns id (UUID) - NEEDS FIX",
+      "locationsTable": "org_id foreign key, returns id (UUID) - NEEDS FIX",
+      "commitmentBlocksTable": "needs interpreter_id, location_id (foreign keys)",
+      "clientRequestsTable": "needs language_id, commitment_block_id (foreign keys)"
+    }
+  },
+  "contextWindowUsage": "129825/200000 (65%)"
 }
